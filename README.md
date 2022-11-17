@@ -1,2 +1,2 @@
 # Other_projects
-Other projects developed during epidemiology internship
+Other projects developed during the epidemiology internship
