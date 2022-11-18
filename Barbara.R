@@ -263,8 +263,9 @@ leaflet() %>%
 # No stplanr tens de trabalhar com o terminal (que pode ser uma skill relevante)
 
 # Tentar com o stplanr
-# Isto nem e bem o stplanr pq estava a dar erro, so peguei mesmo no osrm ate agr
+# Isto nem e bem o stplanr pq estava a dar erro, so peguei mesmo no osrm ate agr pq e esperto enough para pegar na 1a linha da tabela
 library(osrm)
+library(stplanr)
 
 trip <- osrmRoute(
   FMV_coord,
@@ -272,8 +273,17 @@ trip <- osrmRoute(
   returnclass = "sf"
 )
 
+trip2 <- route(
+  from = "Lisboa",
+  to = "Porto",
+  route_fun = osrmRoute,
+  returnclass = "sf"
+)
+
 mapview::mapview(trip)
+mapview::mapview(trip2)
 # Consegui fazer 1 rota certinha pelo menos, agr e tentar juntar todas as rotas no mesmo mapa
 # https://github.com/ropensci/stplanr 
+# https://cran.r-project.org/web/packages/stplanr/stplanr.pdf
 # Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
 # Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
