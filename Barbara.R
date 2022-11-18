@@ -208,6 +208,8 @@ mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 
 
 # Routing now
+
+# Versao com o ORS
 # ATENCAO QUE NADA ISTO ESTA A FUNCIONAR, E SO PARA TERES NOCAO DO QUE SE PASSA
 # Directions to FMV UL from controlo points
 # Careful, coordinates must be in order, meaning i need to add to the dfs FMV's coords in order
@@ -239,7 +241,7 @@ Coord_Barb_limpo1 <- Coord_Barb_limpo [1:70,]  %>% drop_na()
 Coord_Barb_limpo2 <- Coord_Barb_limpo [71:140,] %>% drop_na()
 Coord_Barb_limpo3 <- Coord_Barb_limpo [141:148,] %>% drop_na()
 
-# Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto
+# Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto (acho que é o yy)
 xx <- ors_directions(Coord_Barb_limpo1)
 yy <- ors_directions(Coord_Barb_limpo2)
 zz <- ors_directions(Coord_Barb_limpo3)
@@ -253,3 +255,10 @@ leaflet() %>%
   # addGeoJSON(yy, fill=FALSE) %>%
   addGeoJSON(zz, fill=FALSE) %>%
   fitBBox(x$bbox)
+
+# Routing tentativa numero 2 
+# Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
+# Ora agr vem os problemas:
+# No r5r tens de alocar mais memoria (que eles explicam como)
+# No stplanr tens de trabalhar com o docker (que pode ser uma skill relevante)
+
