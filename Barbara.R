@@ -216,7 +216,7 @@ mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 Coord_controlo_limpo <- Coord_Control_Morad_Simp %>% 
   dplyr:: select(lon, lat)
 
-FMV_coord <- c(38.71392855624822, -9.195503158186124)
+FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
 # Tentativas de adicionar as coord em ordem, desisti por agora
 # for (row in 1:nrow(Coord_controlo_limpo)) {
@@ -260,5 +260,19 @@ leaflet() %>%
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
 # Ora agr vem os problemas:
 # No r5r tens de alocar mais memoria (que eles explicam como)
-# No stplanr tens de trabalhar com o docker (que pode ser uma skill relevante)
+# No stplanr tens de trabalhar com o terminal (que pode ser uma skill relevante)
 
+# Tentar com o stplanr
+library(osrm)
+
+trip <- osrmRoute(
+  FMV_coord,
+  dst= Coord_controlo_limpo,
+  returnclass = "sf"
+)
+
+mapview::mapview(trip)
+# Consegui fazer 1 rota certinha pelo menos, agr e tentar juntar todas as rotas no mesmo mapa
+# https://github.com/ropensci/stplanr 
+# Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
+# Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
