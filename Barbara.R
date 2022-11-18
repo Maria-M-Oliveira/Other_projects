@@ -263,6 +263,7 @@ leaflet() %>%
 # No stplanr tens de trabalhar com o terminal (que pode ser uma skill relevante)
 
 # Tentar com o stplanr
+# Isto nem e bem o stplanr pq estava a dar erro, so peguei mesmo no osrm ate agr
 library(osrm)
 
 trip <- osrmRoute(
