@@ -52,16 +52,7 @@ Escolas2 <- select(Escolas, lon, lat)
 Rotas<- ors_directions(Escolas2, output = "sf") 
 #output sf so i can use it in mapview to combine iso and route on the same map
 
-pal<- c("deepskyblue", 
-        "deepskyblue1", 
-        "deepskyblue2",
-        "deepskyblue3",
-        "dodgerblue",
-        "dodgerblue1",
-        "dodgerblue2",
-        "dodgerblue3",
-        "cadetblue1",
-        "cadetblue2")
+
 ESHN_iso<- mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE, col.regions = ("cornflowerblue"))
 Map_Rotas <- mapview(Rotas)
 Map_Pontos <- mapview(Escolas1, legend= FALSE)
