@@ -3,6 +3,7 @@ library(leaflet)
 library(openrouteservice)
 library(mapview)
 library(sp)
+library(RColorBrewer)
 
 API_Key <- ors_api_key("5b3ce3597851110001cf6248a219fc66105d4bc5bacf80a7fbb1aab0")
 
@@ -20,10 +21,7 @@ ranges <- ranges[rev(values)]
 
 names(ranges) <- sprintf("%s min", as.numeric(names(ranges))/60)
 
-
-
 # adding other relevant schools
-
 # Creating df for routing
 Escolas <- as.data.frame (tribble(~name, ~lon, ~lat,
                     'ESHN',-9.256104898339965,39.08983507024364,
@@ -54,14 +52,10 @@ Escolas2 <- select(Escolas, lon, lat)
 Rotas<- ors_directions(Escolas2, output = "sf") 
 #output sf so i can use it in mapview to combine iso and route on the same map
 
+pal<- c("deepskyblue", "deepskyblue1", "deepskyblue2","deepskyblue3","dodgerblue","dodgerblue1","dodgerblue2","dodgerblue3","cadetblue1","cadetblue2")
 ESHN_iso<- mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE, col.regions = ("cornflowerblue"))
 Map_Rotas <- mapview(Rotas)
-Map_Pontos <- mapview(Escolas1, col.regions=list("cyan","blue")) %>%
-  addStaticLabels(label = Escolas1$name,
-                  noHide = TRUE,
-                  direction = 'top',
-                  textOnly = TRUE,
-                  textsize = "20px")
+Map_Pontos <- mapview(Escolas1, col.regions=pal)
 
 Mapa_final <- ESHN_iso + Map_Rotas + Map_Pontos
 Mapa_final
