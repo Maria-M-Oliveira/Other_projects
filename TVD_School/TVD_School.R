@@ -7,7 +7,6 @@ library(RColorBrewer)
 
 API_Key <- ors_api_key("5b3ce3597851110001cf6248a219fc66105d4bc5bacf80a7fbb1aab0")
 
-
 # Plotting an isochrone from ESHN 
 
 mapviewOptions(fgb = FALSE)
@@ -51,7 +50,6 @@ proj4string(Escolas1) <- CRS("+init=epsg:4326")
 Escolas2 <- select(Escolas, lon, lat)
 Rotas<- ors_directions(Escolas2, output = "sf") 
 #output sf so i can use it in mapview to combine iso and route on the same map
-
 
 ESHN_iso<- mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE, col.regions = ("cornflowerblue"))
 Map_Rotas <- mapview(Rotas)
