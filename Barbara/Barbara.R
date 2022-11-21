@@ -236,7 +236,7 @@ x <- ors_directions(Coord_controlo_limpo_2)
 y <- ors_directions(Coord_controlo_limpo_1)
 
 # Directions to FMV UL from case points
-Coord_Barb_limpo <- select(Coord_Barb_Morad_Simp, lon, lat)
+Coord_Barb_limpo <- dplyr:: select(Coord_Barb_Morad_Simp, lon, lat)
 Coord_Barb_limpo1 <- Coord_Barb_limpo [1:70,]  %>% drop_na()
 Coord_Barb_limpo2 <- Coord_Barb_limpo [71:140,] %>% drop_na()
 Coord_Barb_limpo3 <- Coord_Barb_limpo [141:148,] %>% drop_na()
@@ -255,6 +255,7 @@ leaflet() %>%
   # addGeoJSON(yy, fill=FALSE) %>%
   addGeoJSON(zz, fill=FALSE) %>%
   fitBBox(x$bbox)
+
 
 # Routing tentativa numero 2 
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
