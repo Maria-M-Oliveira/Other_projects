@@ -11,7 +11,7 @@ library(maptools)
 library(tidyverse)
   
 #Loading and cleaning data
-Barb <- fread("Código Postal - Bárbara.csv")
+Barb <- fread(".\\Barbara\\C�digo Postal - B�rbara.csv")
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique
   
@@ -22,7 +22,7 @@ Controlo <- Barbclean[150:220, ] %>%
   subset(select = -V3) 
   
   
-Moradas <- fread("pt_addresses.csv") %>% 
+Moradas <- fread(".\\Barbara\\pt_addresses.csv") %>% 
   unique
   
 #Grouping and taking the average of the coords (without converting into xy)
@@ -168,14 +168,14 @@ map <- leaflet() %>%
 map
    
 #Uploading and cleaning shape files
-PT <-readOGR("Cont_AAD_CAOP2020") 
+PT <-readOGR(".\\Barbara\\Cont_AAD_CAOP2020") 
 names(PT)
    
 PT_Lisb <- PT[PT$Distrito == "Lisboa",]
 PT_Sant <- PT[PT$Distrito == "Santarém",]
 PT_Evor <- PT[PT$Distrito == "?vora",]
 PT_Setu <- PT[PT$Distrito == "Setúbal",]
-PT_Mad <- readOGR("ArqMadeira_AAd_CAOP2020") 
+PT_Mad <- readOGR(".\\Barbara\\ArqMadeira_AAd_CAOP2020") 
   
 PT_Clean <- rbind(PT_Lisb, PT_Evor) %>% 
      rbind(PT_Sant) %>% 
@@ -259,8 +259,8 @@ leaflet() %>%
 # Routing tentativa numero 2 
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
 # Ora agr vem os problemas:
-# No r5r tens de alocar mais memoria (que eles explicam como)
-# No stplanr tens de trabalhar com o terminal (que pode ser uma skill relevante)
+# No r5r tens de alocar mais memoria (que eles explicam como), mas esta a dar-me dor de cabeca mexer com isto
+# No stplanr tb e confuso como fazes multiplas rotas
 
 # Tentar com o stplanr
 # Isto nem e bem o stplanr pq estava a dar erro, so peguei mesmo no osrm ate agr pq e esperto enough para pegar na 1a linha da tabela
@@ -269,7 +269,7 @@ library(stplanr)
 
 trip <- osrmRoute(
   FMV_coord,
-  dst= Coord_controlo_limpo,
+  dst= Coord_controlo_limpo[],
   returnclass = "sf"
 )
 
@@ -287,3 +287,4 @@ mapview::mapview(trip2)
 # https://cran.r-project.org/web/packages/stplanr/stplanr.pdf
 # Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
 # Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
+
