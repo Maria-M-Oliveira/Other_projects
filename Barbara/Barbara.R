@@ -11,7 +11,7 @@ library(maptools)
 library(tidyverse)
   
 #Loading and cleaning data
-Barb <- fread(".\\Barbara\\C�digo Postal - B�rbara.csv")
+Barb <- fread(".\\Barbara\\Código Postal - Bárbara.csv")
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique
   
@@ -27,7 +27,7 @@ Moradas <- fread(".\\Barbara\\pt_addresses.csv") %>%
   
 #Grouping and taking the average of the coords (without converting into xy)
 Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", "lon", "lat")],
-                                        by.x = "Código postal", 
+                                        by.x = "CÃ³digo postal", 
                                         by.y = "postcode", 
                                         all.x = T) %>% 
   group_by(`ID Animal`) %>%
@@ -36,7 +36,7 @@ Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", 
   
   
 Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode", "lon", "lat")], 
-                      by.x = "Código postal", 
+                      by.x = "CÃ³digo postal", 
                       by.y = "postcode", 
                       all.x = T) %>% 
    group_by(`ID Animal`) %>%
@@ -46,7 +46,7 @@ Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode
 #Plotting the minimum convex polygon, full guide here:
 #"https://jamesepaterson.github.io/jamespatersonblog/03_trackingworkshop_homeranges#:~:text=The%20minimum%20convex%20polygon%20"
 #Removing NA's
-#Remover ID's que tenham menos de 5 obs, mcp não funciona otherwise
+#Remover ID's que tenham menos de 5 obs, mcp nÃ£o funciona otherwise
 Conjuncture_Controlo_wna <- Conjuncture_Controlo_Moradas[!is.na(Conjuncture_Controlo_Moradas$lon) & !is.na(Conjuncture_Controlo_Moradas$lat), ]%>% 
     group_by(`ID Animal`) %>% 
     filter(n()>= 5) %>% 
@@ -98,15 +98,15 @@ Centroid_Controlo <- gCentroid(Controlo.mcp, byid = T)
 SPDF_Centroid_Controlo  <- SpatialPointsDataFrame(Centroid_Controlo, data.frame(row.names = row.names(Centroid_Controlo))) 
   
 #Stitching them together
-Coord_Barb_Morad_Simp <- Conjuncture_Barb_Moradas %>%
-                        summarise(across(.fns = mean)) %>%
-                        subset(select = -c(2:4)) %>%
-                        merge(Barbcleanclean, by = "ID Animal")
-
-Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
-                        summarise(across(.fns = mean)) %>%
-                        subset(select = -c(2:3)) %>%
-                        merge(Controlo, by = "ID Animal")
+  # Coord_Barb_Morad_Simp <- Conjuncture_Barb_Moradas %>% 
+  #                         summarise(across(.fns = mean)) %>% 
+  #                         subset(select = -c(2:4)) %>% 
+  #                         merge(Barbcleanclean, by = "ID Animal")
+  # 
+  # Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>% 
+  #                         summarise(across(.fns = mean)) %>%
+  #                         subset(select = -c(2:3)) %>% 
+  #                         merge(Controlo, by = "ID Animal")
   
 #Trying a plot
 map <- leaflet() %>%
@@ -117,7 +117,7 @@ map <- leaflet() %>%
                      lng = ~lon,
                      lat = ~lat,
                      popup = ~`ID Animal`,
-                     label = ~`Código postal`,
+                     label = ~`CÃ³digo postal`,
                      group = "Cases",
                      clusterOptions = NULL,
                      radius = 2.5,
@@ -129,7 +129,7 @@ map <- leaflet() %>%
                      lng = ~lon,
                      lat = ~lat,
                      popup = ~`ID Animal`,
-                     label = ~`Código postal`,
+                     label = ~`CÃ³digo postal`,
                      group = "Controls",
                      radius = 2.5,
                      color = "blue",
@@ -172,9 +172,9 @@ PT <-readOGR(".\\Barbara\\Cont_AAD_CAOP2020")
 names(PT)
    
 PT_Lisb <- PT[PT$Distrito == "Lisboa",]
-PT_Sant <- PT[PT$Distrito == "Santarém",]
+PT_Sant <- PT[PT$Distrito == "SantarÃ©m",]
 PT_Evor <- PT[PT$Distrito == "?vora",]
-PT_Setu <- PT[PT$Distrito == "Setúbal",]
+PT_Setu <- PT[PT$Distrito == "SetÃºbal",]
 PT_Mad <- readOGR(".\\Barbara\\ArqMadeira_AAd_CAOP2020") 
   
 PT_Clean <- rbind(PT_Lisb, PT_Evor) %>% 
@@ -185,7 +185,8 @@ PT_Clean <- rbind(PT_Lisb, PT_Evor) %>%
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
 # 1- 20min distance; 2-40min; 3-60min (by car)
-
+install.packages("remotes")
+remotes::install_github("GIScience/openrouteservice-r")
 library(openrouteservice)
 library(mapview)
 
@@ -208,13 +209,27 @@ mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 
 
 # Routing now
-
 # Versao com o ORS
 # ATENCAO QUE NADA ISTO ESTA A FUNCIONAR, E SO PARA TERES NOCAO DO QUE SE PASSA
-# Directions to FMV UL from controlo points
+# Directions to FMV UL from controlo points, converting the control points back into a grouped dataframe. 
+# select doesn't compute with spatialpoints class.
 # Careful, coordinates must be in order, meaning i need to add to the dfs FMV's coords in order
-Coord_controlo_limpo <- Coord_Control_Morad_Simp %>% 
+   
+DF_Centroid_Controlo <- as.data.frame(Centroid_Controlo)
+colnames(DF_Centroid_Controlo)[1] <- "lon"
+colnames(DF_Centroid_Controlo)[2] <- "lat"
+   
+#Surgiu na DF acima a observação ID 59, com as coords da fac.
+#The same didn't happen when I repeated the process for the samples. idk
+DF_Centroid_Barb <- as.data.frame(Centroid_Barb)
+colnames(DF_Centroid_Barb)[1] <- "lon"
+colnames(DF_Centroid_Barb)[2] <- "lat"
+   
+Coord_controlo_limpo <- DF_Centroid_Controlo %>% 
   dplyr:: select(lon, lat)
+   
+Coord_Barb_limpo <- DF_Centroid_Barb %>% 
+  dplyr::select(lon, lat)
 
 FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
@@ -229,22 +244,26 @@ FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 # Ok so para explicar a confusao
 # Entao, com o ORS, tens ummaximo de 70 pedidos que podes fazer at once, entao tive de separar as DB
  
-Coord_controlo_limpo_1 <- Coord_controlo_limpo [37:71,]
+Coord_controlo_limpo_1 <- Coord_controlo_limpo [37:59,]
 Coord_controlo_limpo_2 <- Coord_controlo_limpo [1:36,]
 
 x <- ors_directions(Coord_controlo_limpo_2)
 y <- ors_directions(Coord_controlo_limpo_1)
 
 # Directions to FMV UL from case points
-Coord_Barb_limpo <- select(Coord_Barb_Morad_Simp, lon, lat)
-Coord_Barb_limpo1 <- Coord_Barb_limpo [1:70,]  %>% drop_na()
-Coord_Barb_limpo2 <- Coord_Barb_limpo [71:140,] %>% drop_na()
-Coord_Barb_limpo3 <- Coord_Barb_limpo [141:148,] %>% drop_na()
+# Passei esta mais para cima
+# Coord_Barb_limpo <- select(Coord_Barb_Morad_Simp, lon, lat)
+Coord_Barb_limpo1 <- Coord_Barb_limpo [1:39,]  #%>% drop_na()
+Coord_Barb_limpo2 <- Coord_Barb_limpo [40:80,] #%>% drop_na()
+Coord_Barb_limpo3 <- Coord_Barb_limpo [81:119,] #%>% drop_na()
+#Getting rid of Madeira
+Coord_Barb_limpo3 <- Coord_Barb_limpo3[-24, ]
 
-# Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto (acho que é o yy)
+# Ora aqui ha outro problema que e nao haver direÃ§oes obviamente do funchal para a fmv pronto (acho que Ã© o yy)
 xx <- ors_directions(Coord_Barb_limpo1)
 yy <- ors_directions(Coord_Barb_limpo2)
 zz <- ors_directions(Coord_Barb_limpo3)
+
 
 # O mapa e possivel fazer, mas o que te vai acontecer antes de se arrumar as coordenadas em ordem, e que vais ter o caminho de uns CP para outros
 leaflet() %>%
