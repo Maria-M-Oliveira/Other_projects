@@ -213,8 +213,6 @@ mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 # ATENCAO QUE NADA ISTO ESTA A FUNCIONAR, E SO PARA TERES NOCAO DO QUE SE PASSA
 # Directions to FMV UL from controlo points
 # Careful, coordinates must be in order, meaning i need to add to the dfs FMV's coords in order
-Coord_controlo_limpo <- Coord_Control_Morad_Simp %>% 
-  dplyr:: select(lon, lat)
 
 FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
@@ -227,32 +225,46 @@ u2 <- dplyr:: select(u, lon, lat)
 
 # Ok so para explicar a confusao
 # Entao, com o ORS, tens ummaximo de 70 pedidos que podes fazer at once, entao tive de separar as DB
+
  
-u3 <- u2 [37:71,]
-u4 <- u2 [1:36,]
+u3 <- u2 [71:140,]
+u4 <- u2 [1:70,]
+u5 <- u2 [141:142,]
 
 x <- ors_directions(u4)
 y <- ors_directions(u3)
+z <- ors_directions(u5)
 
 # Directions to FMV UL from case points
-Coord_Barb_limpo <- dplyr:: select(Coord_Barb_Morad_Simp, lon, lat)
-Coord_Barb_limpo1 <- Coord_Barb_limpo [1:70,]  %>% drop_na()
-Coord_Barb_limpo2 <- Coord_Barb_limpo [71:140,] %>% drop_na()
-Coord_Barb_limpo3 <- Coord_Barb_limpo [141:148,] %>% drop_na()
+v <- Coord_Barb_Morad_Simp %>% 
+  group_by(`ID Animal`) %>% 
+  group_modify(~add_row
+               (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
+  ungroup() %>% 
+  dplyr:: select(lon, lat)
+
+v1 <- v [1:70,]  %>% drop_na()
+v2 <- v [71:142,] %>% drop_na()
+v3 <- v [142:210,] %>% drop_na()
+v4 <- v [211:280,]
+v5 <- v [281:296,]
 
 # Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto (acho que é o yy)
-xx <- ors_directions(Coord_Barb_limpo1)
-yy <- ors_directions(Coord_Barb_limpo2)
-zz <- ors_directions(Coord_Barb_limpo3)
+xx <- ors_directions(v1)
+yy <- ors_directions(v2)
+zz <- ors_directions(v3)
+xxx <- ors_directions(v4)
+yyy <- ors_directions(v5)
 
 # O mapa e possivel fazer, mas o que te vai acontecer antes de se arrumar as coordenadas em ordem, e que vais ter o caminho de uns CP para outros
 leaflet() %>%
   addTiles() %>%
   addGeoJSON(x, fill=FALSE) %>%
   addGeoJSON(y, fill=FALSE) %>%
-  # addGeoJSON(xx, fill=FALSE) %>%
-  # addGeoJSON(yy, fill=FALSE) %>%
-  # addGeoJSON(zz, fill=FALSE) %>%
+  addGeoJSON(z, fill=FALSE) %>%
+  addGeoJSON(xx, fill=FALSE) %>%
+  addGeoJSON(yy, fill=FALSE) %>%
+  addGeoJSON(zz, fill=FALSE) %>%
   fitBBox(x$bbox)
 
 
