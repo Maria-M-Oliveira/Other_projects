@@ -256,7 +256,7 @@ zz <- ors_directions(v3)
 xxx <- ors_directions(v4)
 yyy <- ors_directions(v5)
 
-# O mapa e possivel fazer, mas o que te vai acontecer antes de se arrumar as coordenadas em ordem, e que vais ter o caminho de uns CP para outros
+# Mapa com rotas de carro
 leaflet() %>%
   addTiles() %>%
   addGeoJSON(x, fill=FALSE) %>%
@@ -285,12 +285,6 @@ trip <- osrmRoute(
   returnclass = "sf"
 )
 
-trip2 <- route(
-  from = "Lisboa",
-  to = "Porto",
-  route_fun = osrmRoute,
-  returnclass = "sf"
-)
 
 mapview::mapview(trip)
 mapview::mapview(trip2)
