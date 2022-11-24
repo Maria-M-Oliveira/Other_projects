@@ -258,6 +258,7 @@ xxx <- ors_directions(v4) #Este tem a madeira e ele obvio que nao consegue dar c
 yyy <- ors_directions(v5)
 
 # Mapa com rotas de carro
+# Convem agrupar isto por Casos e Controlos para depois podermos brincar com o mapa
 leaflet() %>%
   addTiles() %>%
   addGeoJSON(x, fill=FALSE) %>%
@@ -276,6 +277,25 @@ leaflet() %>%
   addTiles() %>% 
   addGeoJSON(x_foot, fill=FALSE) %>% 
   fitBBox(x$bbox)
+
+
+# Mapa com public transport
+# So this is fun, o ORS nao tem isso
+library(hereR)
+
+set_key("6O70u-gneZ_0CbZj7hDQ0nX88HOHFSmkzgwC9DLGFQ0")
+
+b <- st_as_sf(v5, coords=c(1:2)) %>% 
+  st_set_crs(4326) %>% 
+  st_transform(crs=32736)
+
+c <- hereR:: connection(
+  origin=b[1,],
+  destination=b[2,],
+  summary=TRUE
+)
+
+plot(c)
 # Routing tentativa numero 2 
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
 # Ora agr vem os problemas:
