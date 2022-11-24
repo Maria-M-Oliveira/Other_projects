@@ -296,6 +296,22 @@ c <- hereR:: connection(
 )
 
 plot(c)
+
+# https://geocompr.robinlovelace.net/transport.html
+# https://cran.r-project.org/web/packages/hereR/hereR.pdf
+# https://developer.here.com/documentation/public-transit/dev_guide/routing/index.html
+# https://transitfeeds.com/l/670-portugal
+# https://rstudio-pubs-static.s3.amazonaws.com/234589_8188f8d6471f412b94dbc61f7b1aaa16.html
+# https://cran.r-project.org/web/packages/tidytransit/vignettes/frequency.html
+# https://github.com/ATFutures/gtfs-router
+# https://cran.r-project.org/web/packages/gtfsrouter/gtfsrouter.pdf
+# https://cran.r-project.org/web/packages/tidytransit/vignettes/introduction.html
+# https://platform.here.com/
+
+
+
+
+
 # Routing tentativa numero 2 
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
 # Ora agr vem os problemas:
