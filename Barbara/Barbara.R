@@ -11,7 +11,7 @@ library(maptools)
 library(tidyverse)
   
 #Loading and cleaning data
-Barb <- fread(".\\Barbara\\Código Postal - Bárbara.csv")
+Barb <- fread(".\\Barbara\\CÃ³digo Postal - BÃ¡rbara.csv")
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique
   
@@ -218,22 +218,21 @@ Coord_controlo_limpo <- Coord_Control_Morad_Simp %>%
 
 FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
-# Tentativas de adicionar as coord em ordem, desisti por agora
-# for (row in Coord_controlo_limpo) {
-#   Coord_controlo_limpo %>% rbind(lat=8.71392855624822, lon= -9.195503158186124, .after= n)
-#   print(Coord_controlo_limpo)
-# }
-# # Coord_controlo_limpo[nrow(Coord_controlo_limpo) + 1,] = list(-9.195503158186124, 38.71392855624822)
-# u <- lapply(Coord_controlo_limpo, rbind(Coord_controlo_limpo, FMV_coord))
+u <- Coord_Control_Morad_Simp %>% 
+  group_by(`ID Animal`) %>% 
+  group_modify(~add_row
+                   (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
+  ungroup()
+u2 <- dplyr:: select(u, lon, lat)
 
 # Ok so para explicar a confusao
 # Entao, com o ORS, tens ummaximo de 70 pedidos que podes fazer at once, entao tive de separar as DB
  
-Coord_controlo_limpo_1 <- Coord_controlo_limpo [37:71,]
-Coord_controlo_limpo_2 <- Coord_controlo_limpo [1:36,]
+u3 <- u2 [37:71,]
+u4 <- u2 [1:36,]
 
-x <- ors_directions(Coord_controlo_limpo_2)
-y <- ors_directions(Coord_controlo_limpo_1)
+x <- ors_directions(u4)
+y <- ors_directions(u3)
 
 # Directions to FMV UL from case points
 Coord_Barb_limpo <- dplyr:: select(Coord_Barb_Morad_Simp, lon, lat)
@@ -251,9 +250,9 @@ leaflet() %>%
   addTiles() %>%
   addGeoJSON(x, fill=FALSE) %>%
   addGeoJSON(y, fill=FALSE) %>%
-  addGeoJSON(xx, fill=FALSE) %>%
+  # addGeoJSON(xx, fill=FALSE) %>%
   # addGeoJSON(yy, fill=FALSE) %>%
-  addGeoJSON(zz, fill=FALSE) %>%
+  # addGeoJSON(zz, fill=FALSE) %>%
   fitBBox(x$bbox)
 
 
