@@ -238,22 +238,23 @@ z <- ors_directions(u5)
 # Directions to FMV UL from case points
 v <- Coord_Barb_Morad_Simp %>% 
   group_by(`ID Animal`) %>% 
+  drop_na() %>% 
   group_modify(~add_row
                (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
   ungroup() %>% 
   dplyr:: select(lon, lat)
 
-v1 <- v [1:70,]  %>% drop_na()
-v2 <- v [71:142,] %>% drop_na()
-v3 <- v [142:210,] %>% drop_na()
+v1 <- v [1:70,]  
+v2 <- v [71:140,] 
+v3 <- v [141:210,] 
 v4 <- v [211:280,]
-v5 <- v [281:296,]
+v5 <- v [281:286,]
 
 # Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto (acho que é o yy)
 xx <- ors_directions(v1)
 yy <- ors_directions(v2)
 zz <- ors_directions(v3)
-xxx <- ors_directions(v4)
+xxx <- ors_directions(v4) #Este tem a madeira e ele obvio que nao consegue dar compute ne pois
 yyy <- ors_directions(v5)
 
 # Mapa com rotas de carro
@@ -262,12 +263,19 @@ leaflet() %>%
   addGeoJSON(x, fill=FALSE) %>%
   addGeoJSON(y, fill=FALSE) %>%
   addGeoJSON(z, fill=FALSE) %>%
-  addGeoJSON(xx, fill=FALSE) %>%
-  addGeoJSON(yy, fill=FALSE) %>%
-  addGeoJSON(zz, fill=FALSE) %>%
+  addGeoJSON(xx, fill=FALSE, color = "Red") %>%
+  addGeoJSON(yy, fill=FALSE, color = "Red") %>%
+  addGeoJSON(zz, fill=FALSE, color = "Red") %>%
+  addGeoJSON(yyy, fill=FALSE, color = "Red") %>% 
   fitBBox(x$bbox)
 
-
+# Mapa com rotas a pe
+# Fazer o mesmo que o acima, mas definir profile para walking
+x_foot <- ors_directions(u4,profile="foot-walking")
+leaflet() %>% 
+  addTiles() %>% 
+  addGeoJSON(x_foot, fill=FALSE) %>% 
+  fitBBox(x$bbox)
 # Routing tentativa numero 2 
 # Ha outros packages: r5r e stplanr; ambos com capacidade de representar graficamente os dados
 # Ora agr vem os problemas:
