@@ -11,7 +11,7 @@ library(maptools)
 library(tidyverse)
   
 #Loading and cleaning data
-Barb <- fread(".\\Barbara\\CÃ³digo Postal - BÃ¡rbara.csv")
+Barb <- fread(".\\Barbara\\Código Postal - Bárbara.csv")
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique
   
@@ -257,6 +257,14 @@ zz <- ors_directions(v3)
 xxx <- ors_directions(v4) #Este tem a madeira e ele obvio que nao consegue dar compute ne pois
 yyy <- ors_directions(v5)
 
+# Com ors_matrix consegues distancia e tempo para as rotas, e nao tens de ter por ordem
+# Unico problema e que tens max de 3500 rotas e eu estou tipo deer in headlights
+# va isso e ele da-te tempo e distancia entre todos os santos pontos
+# o que eu vou fazer e instalar o ors no pc e ver se consigo isto melhor
+ccc <- ors_matrix(v5, metrics = c("duration", "distance"), units = "km") 
+(ccc$durations/60) %>%  round(1)
+
+
 # Mapa com rotas de carro
 # Convem agrupar isto por Casos e Controlos para depois podermos brincar com o mapa
 leaflet() %>%
@@ -290,12 +298,17 @@ b <- st_as_sf(v5, coords=c(1:2)) %>%
   st_transform(crs=32736)
 
 c <- hereR:: connection(
-  origin=b[1,],
-  destination=b[2,],
+  origin=b[5,],
+  destination=b[6,],
   summary=TRUE
 )
+# Isto da um objeto sf e um df que tem 2 colunas interessantes: distancia (imagino que em m) e tempo (em s)
 
-plot(c)
+# Assim tens os diferentes caminhos de TP, mas isto vai ficar uma mess de dar plot para todas pq isto da as alternativas todas de TP
+leaflet(c) %>%
+  addTiles() %>%
+  addPolylines(color= "Green") %>% 
+  fitBBox(c$bbox)
 
 # https://geocompr.robinlovelace.net/transport.html
 # https://cran.r-project.org/web/packages/hereR/hereR.pdf
