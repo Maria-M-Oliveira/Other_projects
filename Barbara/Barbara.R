@@ -20,7 +20,7 @@ options(openrouteservice.url = "http://localhost:8080/ors")
 
 #Loading and cleaning data
 Barb <- fread(".\\Barbara\\Código Postal - Bárbara.csv")
-Barb <- fread("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\Barbara\\Código Postal - Bárbara.csv")
+
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique %>% 
   rename(Cod_Postal =`CÃ³digo postal` )
@@ -32,7 +32,7 @@ Controlo <- Barbclean[150:220, ] %>%
   subset(select = -V3) 
   
   
-Moradas <- fread("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\Barbara\\pt_addresses.csv") %>% 
+Moradas <- fread(".\\Other_projects\\Barbara\\pt_addresses.csv") %>% 
   unique
   
 #Grouping and taking the average of the coords (without converting into xy)
@@ -178,14 +178,14 @@ map <- leaflet() %>%
 map
    
 #Uploading and cleaning shape files
-PT <-readOGR("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\Barbara\\Cont_AAD_CAOP2020") 
+PT <-readOGR("\\Other_projects\\Barbara\\Cont_AAD_CAOP2020") 
 names(PT)
    
 PT_Lisb <- PT[PT$Distrito == "Lisboa",]
 PT_Sant <- PT[PT$Distrito == "Santarém",]
 PT_Evor <- PT[PT$Distrito == "?vora",]
 PT_Setu <- PT[PT$Distrito == "Setúbal",]
-PT_Mad <- readOGR("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\Barbara\\ArqMadeira_AAD_CAOP2020") 
+PT_Mad <- readOGR("\\Other_projects\\Barbara\\ArqMadeira_AAD_CAOP2020") 
   
 PT_Clean <- rbind(PT_Lisb, PT_Evor) %>% 
      rbind(PT_Sant) %>% 
