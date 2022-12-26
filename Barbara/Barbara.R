@@ -200,7 +200,7 @@ PT_Clean <- rbind(PT_Lisb, PT_Evor) %>%
 
 mapviewOptions(fgb = FALSE)
 coordinates <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
-res <- ors_isochrones(coordinates, range = 3600, interval = 1200, output = "sf")
+res <- ors_isochrones(coordinates, range = 4800, interval = 1200, output = "sf")
 res
 
 values <- levels(factor(res$value))
