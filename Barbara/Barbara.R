@@ -19,7 +19,7 @@ options(openrouteservice.url = "http://localhost:8080/ors")
 
 
 #Loading and cleaning data
-Barb <- fread(".\\Barbara\\Código Postal - Bárbara.csv")
+Barb <- fread(".\\Barbara\\Codigo Postal - Barbara.csv")
 
 Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
     unique %>% 
@@ -56,7 +56,7 @@ Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode
 #Plotting the minimum convex polygon, full guide here:
 #"https://jamesepaterson.github.io/jamespatersonblog/03_trackingworkshop_homeranges#:~:text=The%20minimum%20convex%20polygon%20"
 #Removing NA's
-#Remover ID's que tenham menos de 5 obs, mcp não funciona otherwise
+#Remover ID's que tenham menos de 5 obs, mcp nao funciona otherwise
 Conjuncture_Controlo_wna <- Conjuncture_Controlo_Moradas[!is.na(Conjuncture_Controlo_Moradas$lon) & !is.na(Conjuncture_Controlo_Moradas$lat), ]%>% 
     group_by(`ID Animal`) %>% 
     filter(n()>= 5) %>% 
@@ -117,7 +117,13 @@ Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
                         summarise(across(.fns = mean)) %>%
                         subset(select = -c(2:3)) %>%
                         merge(Controlo, by = "ID Animal")
-  
+
+# TL;DR tenho centroides dos codigos postais dos casos e controlos
+# Acho que a seguir tentar juntar dados INE, devo conseguir ir a NUTS III pq coords
+# Investigar a situacao e definir variaveis que podem ser uteis de comparar 
+# Isto e um caso controlo de compliance vacinacao
+# Portanto pensar tipo.. habilitacoes literarias/rendimentos/???
+
 #Trying a plot
 map <- leaflet() %>%
      addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark") %>%
