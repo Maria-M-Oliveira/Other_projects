@@ -36,6 +36,7 @@ Moradas <- fread(".\\Other_projects\\Barbara\\pt_addresses.csv") %>%
   unique
 
 # Isto tem city associado a codigo postal as well
+# O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
   
 #Grouping and taking the average of the coords (without converting into xy)
 Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", "lon", "lat")],
