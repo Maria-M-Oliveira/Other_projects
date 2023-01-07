@@ -34,6 +34,8 @@ Controlo <- Barbclean[150:220, ] %>%
   
 Moradas <- fread(".\\Other_projects\\Barbara\\pt_addresses.csv") %>% 
   unique
+
+# Isto tem city associado a codigo postal as well
   
 #Grouping and taking the average of the coords (without converting into xy)
 Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", "lon", "lat")],
@@ -184,7 +186,7 @@ map <- leaflet() %>%
 map
    
 #Uploading and cleaning shape files
-PT <-readOGR("\\Other_projects\\Barbara\\Cont_AAD_CAOP2020") 
+PT <-readOGR(".\\Barbara\\Cont_AAD_CAOP2020") 
 names(PT)
    
 PT_Lisb <- PT[PT$Distrito == "Lisboa",]
@@ -197,7 +199,7 @@ PT_Clean <- rbind(PT_Lisb, PT_Evor) %>%
      rbind(PT_Sant) %>% 
      rbind(PT_Setu)
    
-
+# Com ficheiro informacao extra CAOP tenho correspondencia DICOFRE a nome freguesia
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
 # 1- 20min distance; 2-40min; 3-60min (by car)
