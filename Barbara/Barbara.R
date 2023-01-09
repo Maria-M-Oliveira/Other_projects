@@ -1,6 +1,6 @@
 
 library(data.table)
-library(dplyr)
+library(tidyverse)
 library(leaflet)
 library(rgeos)
 library(ggplot2)
@@ -21,23 +21,26 @@ options(openrouteservice.url = "http://localhost:8080/ors")
 #Loading and cleaning data
 Barb <- fread(".\\Barbara\\Codigo Postal - Barbara.csv")
 
-Barbclean <- subset(Barb, select = -c( V4 : V26 )) %>% 
+Barbclean <- subset(Barb, select = -V3) %>% 
     unique %>% 
-  rename(Cod_Postal =`CÃ³digo postal` )
+  rename(Cod_Postal =`Codigo postal`)
   
 Barbcleanclean <- Barbclean[1:148, ]
     
 #Making sure we dont lose the control group, extracting and creating a new df
-Controlo <- Barbclean[150:220, ] %>%
-  subset(select = -V3) 
+Controlo <- Barbclean[150:220, ]
   
-  
-Moradas <- fread(".\\Other_projects\\Barbara\\pt_addresses.csv") %>% 
-  unique
+Moradas <- fread(".\\Barbara\\pt_addresses - Copy.csv", encoding = "UTF-8") %>% 
+  unique %>% 
+  mutate_if(is.character, str_to_lower) -> Moradas
 
 # Isto tem city associado a codigo postal as well
 # O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
   
+NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> NUTS
+# pq este mutate if com str_to_lower = pq preciso de ter isto matching entre as duas DB e vai tudo minuscula pq sim
+
 #Grouping and taking the average of the coords (without converting into xy)
 Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", "lon", "lat")],
                                         by.x = "Cod_Postal", 
@@ -45,8 +48,7 @@ Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", 
                                         all.x = T) %>% 
   group_by(`ID Animal`) %>%
   unique
-    
-  
+
   
 Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode", "lon", "lat")], 
                       by.x = "Cod_Postal", 
@@ -55,7 +57,21 @@ Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode
    group_by(`ID Animal`) %>%
   unique
   
-  
+
+# Agr com NUTS
+Controlo_com_NUTS <- merge(Conjuncture_Controlo_Moradas, NUTS, 
+                           by.x = "city",
+                           by.y = "Municipios",
+                           all.x = T)
+
+Casos_com_NUTS <- merge(Conjuncture_Barb_Moradas, NUTS, 
+                        by.x = "city",
+                        by.y = "Municipios",
+                        all.x = T)
+
+# Kinda funciona, pq a lista dos municipios por NUT nao esta completa, entao ficam a faltar concelhos
+# Mas os que estao na lista tao ok
+
 #Plotting the minimum convex polygon, full guide here:
 #"https://jamesepaterson.github.io/jamespatersonblog/03_trackingworkshop_homeranges#:~:text=The%20minimum%20convex%20polygon%20"
 #Removing NA's
