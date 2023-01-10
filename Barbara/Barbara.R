@@ -61,12 +61,12 @@ Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode
 # Agr com NUTS
 Controlo_com_NUTS <- merge(Conjuncture_Controlo_Moradas, NUTS, 
                            by.x = "city",
-                           by.y = "Municipios",
+                           by.y = "CONCELHO_DSG",
                            all.x = T)
 
 Casos_com_NUTS <- merge(Conjuncture_Barb_Moradas, NUTS, 
                         by.x = "city",
-                        by.y = "Municipios",
+                        by.y = "CONCELHO_DSG",
                         all.x = T)
 
 # Kinda funciona, pq a lista dos municipios por NUT nao esta completa, entao ficam a faltar concelhos
