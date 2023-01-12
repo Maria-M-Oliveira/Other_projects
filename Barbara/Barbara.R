@@ -17,6 +17,9 @@ library(mapview)
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
 
+# Ora momento eureka:
+# Nao tenho os dados todos para fazer testes estatisticos
+
 
 #Loading data
 Barb <- fread(".\\Barbara\\Codigo Postal - Barbara.csv")
@@ -223,9 +226,11 @@ habilita_sup <- fread(".\\Barbara\\Proporcao ensino sup.csv", encoding = "UTF-8"
   mutate_if(is.character, str_to_lower) -> habilita_sup
 
 
-# Rendimentos
+# Rendimento liquido (2020) e tx emprego (2021)
 taxa_emp <- fread(".\\Barbara\\Taxa de emprego.csv", encoding = "UTF-8") %>% 
   mutate_if(is.character, str_to_lower) -> taxa_emp
+rendimento_liq <- fread(".\\Barbara\\rendimento mensal.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> rendimento_liq
 
 # Ligar DB
 Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
@@ -237,7 +242,24 @@ Casos_com_dados <- Coord_Casos_Morad_NUTS %>%
         by.y="Local de residência (à data dos Censos 2021)") %>% 
   merge(taxa_emp,
         by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)")
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(rendimento_liq,
+        by.x="NUTSIII_DSG",
+        by.y="Local de residência (NUTS - 2013) (1)")
+
+Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>% 
+  merge(habilita_sec,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(habilita_sup,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(taxa_emp,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(rendimento_liq,
+        by.x="NUTSIII_DSG",
+        by.y="Local de residência (NUTS - 2013) (1)")
 
 
 # Mapping routes and such
