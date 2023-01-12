@@ -13,6 +13,7 @@ library(tidyverse)
 library(adehabitatHR)
 library(openrouteservice)
 library(mapview)
+library(xlsx)
 
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
@@ -261,6 +262,9 @@ Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>%
         by.x="NUTSIII_DSG",
         by.y="Local de residência (NUTS - 2013) (1)")
 
+# Exportar para ficheiro csv
+write.xlsx(Controlo_com_dados, file="Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
+write.xlsx(Casos_com_dados, file="Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
 
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
