@@ -18,7 +18,6 @@ library(mapview)
 options(openrouteservice.url = "http://localhost:8080/ors")
 
 
-
 #Loading data
 Barb <- fread(".\\Barbara\\Codigo Postal - Barbara.csv")
 
