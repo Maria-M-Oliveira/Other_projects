@@ -28,12 +28,11 @@ Moradas <- fread(".\\Barbara\\pt_addresses.csv", encoding = "UTF-8") %>%
 # Isto tem city associado a codigo postal as well
 # O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
 
-NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>% 
+NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>%
   mutate_if(is.character, str_to_lower) -> NUTS
 
-Corresponde <- fread(".\\Barbara\\Correspondencias.csv", encoding = "UTF-8") %>% 
-  mutate_if(is.character, str_to_lower) -> Corresponde
-
+Corresponde <- read_csv("Barbara/Correspondecias.csv") %>%
+  mutate_if(is.character, str_to_lower) -> Corresponde 
 
 # Cleaning data
 Barb <- subset(Barb, select = -V3) %>% 
@@ -120,15 +119,38 @@ Coord_Barb_Morad_Simp <- Conjuncture_Barb_Moradas %>%
                         summarise(across(.fns = mean)) %>%
                         subset(select = -c(2:3)) %>%
                         merge(Casos, by = "ID Animal")
-Coord_Barb_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
+
+Coord_Casos_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
   subset(select = c(1:3)) %>% 
-  unique
+  unique %>%
+  merge(Corresponde,
+            by.x="city",
+            by.y="Localidades DB",
+            all.x=T) %>% 
+  subset(select = c(2:4)) %>% 
+  merge(NUTS,
+        by.x = "Correspondencia",
+        by.y = "CONCELHO_DSG",
+        all.x = T)
 
 
 Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
                         summarise(across(.fns = mean)) %>%
                         subset(select = -c(2:3)) %>%
                         merge(Controlo, by = "ID Animal")
+
+Coord_Controlo_Morad_NUTS <- Conjuncture_Controlo_Moradas %>% 
+  subset(select = c(1:3)) %>% 
+  unique %>%
+  merge(Corresponde,
+        by.x="city",
+        by.y="Localidades DB",
+        all.x=T) %>% 
+  subset(select = c(2:4)) %>% 
+  merge(NUTS,
+        by.x = "Correspondencia",
+        by.y = "CONCELHO_DSG",
+        all.x = T)
 
 # TL;DR tenho centroides dos codigos postais dos casos e controlos
 # Acho que a seguir tentar juntar dados INE, devo conseguir ir a NUTS III pq coords
