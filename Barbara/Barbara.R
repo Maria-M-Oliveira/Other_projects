@@ -18,30 +18,28 @@ options(openrouteservice.url = "http://localhost:8080/ors")
 
 
 
-#Loading and cleaning data
+#Loading data
 Barb <- fread(".\\Barbara\\Codigo Postal - Barbara.csv")
 
-Barbclean <- subset(Barb, select = -V3) %>% 
+Moradas <- fread(".\\Barbara\\pt_addresses.csv", encoding = "UTF-8") %>% 
+  unique %>% 
+  mutate_if(is.character, str_to_lower) -> Moradas
+# Isto tem city associado a codigo postal as well
+# O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
+
+NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> NUTS
+
+# Cleaning data
+Barb <- subset(Barb, select = -V3) %>% 
     unique %>% 
   rename(Cod_Postal =`Codigo postal`)
   
-Barbcleanclean <- Barbclean[1:148, ]
-    
-#Making sure we dont lose the control group, extracting and creating a new df
-Controlo <- Barbclean[150:220, ]
-  
-Moradas <- fread(".\\Barbara\\pt_addresses - Copy.csv", encoding = "UTF-8") %>% 
-  unique %>% 
-  mutate_if(is.character, str_to_lower) -> Moradas
+Casos <- Barb[1:148, ]
+Controlo <- Barb[150:220, ]
 
-# Isto tem city associado a codigo postal as well
-# O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
-  
-NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>% 
-  mutate_if(is.character, str_to_lower) -> NUTS
-# pq este mutate if com str_to_lower = pq preciso de ter isto matching entre as duas DB e vai tudo minuscula pq sim
 
-#Grouping and taking the average of the coords (without converting into xy)
+#Grouping with coords (sem converter para xy)
 Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", "lon", "lat")],
                                         by.x = "Cod_Postal", 
                                         by.y = "postcode", 
@@ -50,7 +48,7 @@ Conjuncture_Controlo_Moradas <- merge(Controlo, Moradas[ ,c("city", "postcode", 
   unique
 
   
-Conjuncture_Barb_Moradas <- merge(Barbcleanclean, Moradas[ , c("city", "postcode", "lon", "lat")], 
+Conjuncture_Barb_Moradas <- merge(Casos, Moradas[ , c("city", "postcode", "lon", "lat")], 
                       by.x = "Cod_Postal", 
                       by.y = "postcode", 
                       all.x = T) %>% 
