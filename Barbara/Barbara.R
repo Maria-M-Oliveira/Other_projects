@@ -6,6 +6,7 @@ library(rgeos)
 library(ggplot2)
 library(sf)
 library(sp)
+library(scales)
 library(rgdal)
 library(maptools)
 library(tidyverse)
@@ -29,6 +30,10 @@ Moradas <- fread(".\\Barbara\\pt_addresses.csv", encoding = "UTF-8") %>%
 
 NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>% 
   mutate_if(is.character, str_to_lower) -> NUTS
+
+Corresponde <- fread(".\\Barbara\\Correspondencias.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> Corresponde
+
 
 # Cleaning data
 Barb <- subset(Barb, select = -V3) %>% 
@@ -55,18 +60,6 @@ Conjuncture_Barb_Moradas <- merge(Casos, Moradas[ , c("city", "postcode", "lon",
    group_by(`ID Animal`) %>%
   unique
   
-
-# Agr com NUTS
-Controlo_com_NUTS <- merge(Conjuncture_Controlo_Moradas, NUTS, 
-                           by.x = "city",
-                           by.y = "CONCELHO_DSG",
-                           all.x = T)
-
-Casos_com_NUTS <- merge(Conjuncture_Barb_Moradas, NUTS, 
-                        by.x = "city",
-                        by.y = "CONCELHO_DSG",
-                        all.x = T)
-
 # Kinda funciona, pq a lista dos municipios por NUT nao esta completa, entao ficam a faltar concelhos
 # Mas os que estao na lista tao ok
 
@@ -103,11 +96,9 @@ proj4string(Controlo.sp) <- CRS("+init=epsg:4326 +proj=longlat +ellips=WGS84  +n
 proj4string(Barb.sp) <- CRS("+init=epsg:4326 +proj=longlat +ellips=WGS84 +no_defs")
   
 
-  
 Controlo.mcp <- mcp(Controlo.sp, percent = 95)  
 Barb.mcp <- mcp(Barb.sp, percent = 95)
   
-library(scales)  
   
 plot(Controlo.mcp, col = as.factor(Controlo.mcp@data$id), pch = 16)
 plot(Barb.mcp, col = alpha(1:5, 0.5), add = T)
@@ -127,8 +118,12 @@ SPDF_Centroid_Controlo  <- SpatialPointsDataFrame(Centroid_Controlo, data.frame(
 #Stitching them together
 Coord_Barb_Morad_Simp <- Conjuncture_Barb_Moradas %>%
                         summarise(across(.fns = mean)) %>%
-                        subset(select = -c(2:4)) %>%
-                        merge(Barbcleanclean, by = "ID Animal")
+                        subset(select = -c(2:3)) %>%
+                        merge(Casos, by = "ID Animal")
+Coord_Barb_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
+  subset(select = c(1:3)) %>% 
+  unique
+
 
 Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
                         summarise(across(.fns = mean)) %>%
@@ -140,6 +135,18 @@ Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
 # Investigar a situacao e definir variaveis que podem ser uteis de comparar 
 # Isto e um caso controlo de compliance vacinacao
 # Portanto pensar tipo.. habilitacoes literarias/rendimentos/???
+
+# Agr adicionar as nuts
+Controlo_com_NUTS <-merge(Coord_Control_Morad_Simp, NUTS, 
+                           by.x = "city",
+                           by.y = "CONCELHO_DSG",
+                           all.x = T)
+
+Casos_com_NUTS <- merge(Coord_Barb_Morad_Simp, NUTS, 
+                        by.x = "city",
+                        by.y = "CONCELHO_DSG",
+                        all.x = T)
+
 
 #Trying a plot
 map <- leaflet() %>%
