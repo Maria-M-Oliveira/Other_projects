@@ -33,7 +33,7 @@ NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>%
   unique %>% 
   mutate_if(is.character, str_to_lower) -> NUTS
 
-Corresponde <- read_csv("Barbara/Correspondecias.csv") %>%
+Corresponde <- fread("Barbara/Correspondecias.csv") %>%
   mutate_if(is.character, str_to_lower) -> Corresponde 
 
 # Cleaning data
