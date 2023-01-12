@@ -233,6 +233,10 @@ taxa_emp <- fread(".\\Barbara\\Taxa de emprego.csv", encoding = "UTF-8") %>%
 rendimento_liq <- fread(".\\Barbara\\rendimento mensal.csv", encoding = "UTF-8") %>% 
   mutate_if(is.character, str_to_lower) -> rendimento_liq
 
+# Idades medias (2021)
+idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> idade_med
+
 # Ligar DB
 Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
   merge(habilita_sec,
@@ -246,7 +250,10 @@ Casos_com_dados <- Coord_Casos_Morad_NUTS %>%
         by.y="Local de residência (à data dos Censos 2021)") %>% 
   merge(rendimento_liq,
         by.x="NUTSIII_DSG",
-        by.y="Local de residência (NUTS - 2013) (1)")
+        by.y="Local de residência (NUTS - 2013) (1)")  %>% 
+  merge(idade_med,
+        by.x="NUTSIII_DSG",
+        by.y="Local de residência (à data dos Censos 2021)")
 
 Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>% 
   merge(habilita_sec,
@@ -260,11 +267,14 @@ Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>%
         by.y="Local de residência (à data dos Censos 2021)") %>% 
   merge(rendimento_liq,
         by.x="NUTSIII_DSG",
-        by.y="Local de residência (NUTS - 2013) (1)")
+        by.y="Local de residência (NUTS - 2013) (1)") %>% 
+  merge(idade_med,
+        by.x="NUTSIII_DSG",
+        by.y="Local de residência (à data dos Censos 2021)")
 
 # Exportar para ficheiro csv
-write.xlsx(Controlo_com_dados, file="Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
-write.xlsx(Casos_com_dados, file="Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
+write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
+write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
 
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
