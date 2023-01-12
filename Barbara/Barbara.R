@@ -29,6 +29,8 @@ Moradas <- fread(".\\Barbara\\pt_addresses.csv", encoding = "UTF-8") %>%
 # O que quer dizer que consigo ir buscar a NUT atraves da cidade, somehow
 
 NUTS <- fread(".\\Barbara\\NUTS.csv", encoding= "UTF-8") %>%
+  subset(select = -c(1,10:14)) %>% 
+  unique %>% 
   mutate_if(is.character, str_to_lower) -> NUTS
 
 Corresponde <- read_csv("Barbara/Correspondecias.csv") %>%
@@ -120,56 +122,10 @@ Coord_Barb_Morad_Simp <- Conjuncture_Barb_Moradas %>%
                         subset(select = -c(2:3)) %>%
                         merge(Casos, by = "ID Animal")
 
-Coord_Casos_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
-  subset(select = c(1:3)) %>% 
-  unique %>%
-  merge(Corresponde,
-            by.x="city",
-            by.y="Localidades DB",
-            all.x=T) %>% 
-  subset(select = c(2:4)) %>% 
-  merge(NUTS,
-        by.x = "Correspondencia",
-        by.y = "CONCELHO_DSG",
-        all.x = T)
-
-
 Coord_Control_Morad_Simp <- Conjuncture_Controlo_Moradas %>%
                         summarise(across(.fns = mean)) %>%
                         subset(select = -c(2:3)) %>%
                         merge(Controlo, by = "ID Animal")
-
-Coord_Controlo_Morad_NUTS <- Conjuncture_Controlo_Moradas %>% 
-  subset(select = c(1:3)) %>% 
-  unique %>%
-  merge(Corresponde,
-        by.x="city",
-        by.y="Localidades DB",
-        all.x=T) %>% 
-  subset(select = c(2:4)) %>% 
-  merge(NUTS,
-        by.x = "Correspondencia",
-        by.y = "CONCELHO_DSG",
-        all.x = T)
-
-# TL;DR tenho centroides dos codigos postais dos casos e controlos
-# Acho que a seguir tentar juntar dados INE, devo conseguir ir a NUTS III pq coords
-# Investigar a situacao e definir variaveis que podem ser uteis de comparar 
-# Isto e um caso controlo de compliance vacinacao
-# Portanto pensar tipo.. habilitacoes literarias/rendimentos/???
-
-# Agr adicionar as nuts
-Controlo_com_NUTS <-merge(Coord_Control_Morad_Simp, NUTS, 
-                           by.x = "city",
-                           by.y = "CONCELHO_DSG",
-                           all.x = T)
-
-Casos_com_NUTS <- merge(Coord_Barb_Morad_Simp, NUTS, 
-                        by.x = "city",
-                        by.y = "CONCELHO_DSG",
-                        all.x = T)
-
-
 #Trying a plot
 map <- leaflet() %>%
      addProviderTiles(providers$CartoDB.DarkMatter, group = "Dark") %>%
@@ -228,26 +184,66 @@ map <- leaflet() %>%
   
     
 map
-   
-#Uploading and cleaning shape files
-PT <-readOGR(".\\Barbara\\Cont_AAD_CAOP2020") 
-names(PT)
-   
-PT_Lisb <- PT[PT$Distrito == "Lisboa",]
-PT_Sant <- PT[PT$Distrito == "SantarÃ©m",]
-PT_Evor <- PT[PT$Distrito == "?vora",]
-PT_Setu <- PT[PT$Distrito == "SetÃºbal",]
-PT_Mad <- readOGR("\\Other_projects\\Barbara\\ArqMadeira_AAD_CAOP2020") 
   
-PT_Clean <- rbind(PT_Lisb, PT_Evor) %>% 
-     rbind(PT_Sant) %>% 
-     rbind(PT_Setu)
-   
-# Com ficheiro informacao extra CAOP tenho correspondencia DICOFRE a nome freguesia
+
+
+# Adicionar correspondencia a nuts
+Coord_Casos_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
+  subset(select = c(1:3)) %>% 
+  unique %>%
+  merge(Corresponde,
+        by.x="city",
+        by.y="Localidades DB",
+        all.x=T) %>% 
+  subset(select = c(2:4)) %>% 
+  merge(NUTS,
+        by.x = "Correspondencia",
+        by.y = "CONCELHO_DSG",
+        all.x = T)
+
+Coord_Controlo_Morad_NUTS <- Conjuncture_Controlo_Moradas %>% 
+  subset(select = c(1:3)) %>% 
+  unique %>%
+  merge(Corresponde,
+        by.x="city",
+        by.y="Localidades DB",
+        all.x=T) %>% 
+  subset(select = c(2:4)) %>% 
+  merge(NUTS,
+        by.x = "Correspondencia",
+        by.y = "CONCELHO_DSG",
+        all.x = T)
+
+# Isto e um caso controlo de compliance vacinacao
+# Portanto pensar tipo.. habilitacoes literarias/rendimentos/???
+# Uplaod de dados INE
+# Habilitacoes (dados 2020-2021)
+habilita_sec <- fread(".\\Barbara\\Proporcao ensino sec.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> habilita_sec
+habilita_sup <- fread(".\\Barbara\\Proporcao ensino sup.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> habilita_sup
+
+
+# Rendimentos
+taxa_emp <- fread(".\\Barbara\\Taxa de emprego.csv", encoding = "UTF-8") %>% 
+  mutate_if(is.character, str_to_lower) -> taxa_emp
+
+# Ligar DB
+Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
+  merge(habilita_sec,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(habilita_sup,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)") %>% 
+  merge(taxa_emp,
+        by.x="Correspondencia",
+        by.y="Local de residência (à data dos Censos 2021)")
+
+
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
 # 1- 20min distance; 2-40min; 3-60min (by car)
-
 
 
 mapviewOptions(fgb = FALSE)
