@@ -243,13 +243,13 @@ idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>%
 # 1- 20min distance; 2-40min; 3-60min (by car)
 
 mapviewOptions(fgb = FALSE)
-coordinates <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
-res <- ors_isochrones(coordinates, range = 4800, interval = 1200, output = "sf")
-res
+FMV_coord <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
+iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200, output = "sf")
+iso_FMV
 
-values <- levels(factor(res$value))
-ranges <- split(res, values)
-ranges <- ranges[rev(values)]
+values <- levels(factor(iso_FMV$value))
+ranges <- split(iso_FMV, values)
+ranges <- ranges[iso_FMV(values)]
 
 names(ranges) <- sprintf("%s min", as.numeric(names(ranges))/60)
 
@@ -258,8 +258,6 @@ mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 # Routing now
 # Directions to FMV UL from controlo points
 # Careful, coordinates must be in order, meaning i need to add to the dfs FMV's coords in order
-
-FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
 controlo_para_dir <- Coord_Control_Morad_Simp %>% 
   group_by(`ID Animal`) %>% 
