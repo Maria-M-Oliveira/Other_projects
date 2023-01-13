@@ -352,16 +352,6 @@ leaflet() %>%
   addGeoJSON(casos_dir, fill=FALSE, color = "Red") %>%
   fitBBox(controlos_dir$bbox)
 
-# Mapa com rotas a pe
-# Fazer o mesmo que o acima, mas definir profile para walking
-# Ir ao ficheiro configuracoes e definir parametros
-x_foot <- ors_directions(u4,profile="foot-walking")
-leaflet() %>% 
-  addTiles() %>% 
-  addGeoJSON(x_foot, fill=FALSE) %>% 
-  fitBBox(x$bbox)
-
-
 # Mapa com public transport
 # So this is fun, o ORS nao tem isso
 library(hereR)
