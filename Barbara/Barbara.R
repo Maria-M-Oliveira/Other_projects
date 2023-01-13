@@ -237,49 +237,10 @@ rendimento_liq <- fread(".\\Barbara\\rendimento mensal.csv", encoding = "UTF-8")
 idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>% 
   mutate_if(is.character, str_to_lower) -> idade_med
 
-# Ligar DB
-Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
-  merge(habilita_sec,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(habilita_sup,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(taxa_emp,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(rendimento_liq,
-        by.x="NUTSIII_DSG",
-        by.y="Local de residência (NUTS - 2013) (1)")  %>% 
-  merge(idade_med,
-        by.x="NUTSIII_DSG",
-        by.y="Local de residência (à data dos Censos 2021)")
-
-Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>% 
-  merge(habilita_sec,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(habilita_sup,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(taxa_emp,
-        by.x="Correspondencia",
-        by.y="Local de residência (à data dos Censos 2021)") %>% 
-  merge(rendimento_liq,
-        by.x="NUTSIII_DSG",
-        by.y="Local de residência (NUTS - 2013) (1)") %>% 
-  merge(idade_med,
-        by.x="NUTSIII_DSG",
-        by.y="Local de residência (à data dos Censos 2021)")
-
-# Exportar para ficheiro csv
-write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
-write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
 
 # Mapping routes and such
 # 1st isochrone map from FMV-UL
 # 1- 20min distance; 2-40min; 3-60min (by car)
-
 
 mapviewOptions(fgb = FALSE)
 coordinates <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
@@ -294,39 +255,36 @@ names(ranges) <- sprintf("%s min", as.numeric(names(ranges))/60)
 
 mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
 
-
 # Routing now
-
-# Versao com o ORS
 # Directions to FMV UL from controlo points
 # Careful, coordinates must be in order, meaning i need to add to the dfs FMV's coords in order
 
 FMV_coord <- c(-9.195503158186124, 38.7139285562482)
 
-u <- Coord_Control_Morad_Simp %>% 
+controlo_para_dir <- Coord_Control_Morad_Simp %>% 
   group_by(`ID Animal`) %>% 
   group_modify(~add_row
                    (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
   ungroup()
-u2 <- dplyr:: select(u, lon, lat)
+controlo_para_dir <- dplyr:: select(controlo_para_dir, lon, lat)
 
-x <- ors_directions(u2)
+controlos_dir <- ors_directions(controlo_para_dir)
 
 # Directions to FMV UL from case points
-v <- Coord_Barb_Morad_Simp %>% 
-  group_by(`ID Animal`) %>% 
-  drop_na() %>% 
-  group_modify(~add_row
-               (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
-  ungroup() %>% 
-  dplyr:: select(lon, lat)
-
-
 # Ora aqui ha outro problema que e nao haver direÃ§oes obviamente do funchal para a fmv pronto 
 # Consegui por a funcionarlocalmente, entao nao preciso de andar a dividir a DB, mas tenho de tirar a madeira da equacao
 # pontos a tirar: 250 e 251 (251 Ã© madeira acho)
 
-xx <- ors_directions(v)
+casos_para_dir <- Coord_Barb_Morad_Simp %>% 
+  group_by(`ID Animal`) %>% 
+  drop_na() %>% 
+  group_modify(~add_row
+               (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
+  ungroup() %>%
+  slice(-251) %>% 
+  dplyr:: select(lon, lat)
+
+casos_dir <- ors_directions(casos_para_dir)
 
 # Com ors_matrix consegues distancia e tempo para as rotas, e nao tens de ter por ordem
 # Unico problema e que tens max de 3500 rotas e eu estou tipo deer in headlights
@@ -335,23 +293,64 @@ xx <- ors_directions(v)
 # Portanto, converter em df e limpar
 # ou melhor que isso, como tenho matrix, posso pegar na DB original sÃ³ dos casos/controlos, adicionar uma ultima linha com FMV
 # Assim tenho distancias casos/controlo vs fmv numa unica coluna
-v1 <- Coord_Barb_Morad_Simp %>% 
-  add_row (lon=-9.195503158186124, lat=38.7139285562482) %>% 
+
+Caso_FMV <- Coord_Barb_Morad_Simp %>% 
   drop_na() %>% 
+  add_row (lon=-9.195503158186124, lat=38.7139285562482) %>% 
   dplyr:: select(lon, lat)
 
-ccc <- ors_matrix(v1, metrics = c("duration", "distance"), units = "km") 
-(ccc$durations/60) %>%  round(1)
+matrix_casos <- ors_matrix(Caso_FMV, metrics = c("duration", "distance"), units = "km") 
+(matrix_casos$durations/60) %>%  round(1)
+
+Controlo_FMV <- Coord_Control_Morad_Simp %>% 
+  drop_na() %>% 
+  add_row (lon=-9.195503158186124, lat=38.7139285562482) %>% 
+  dplyr:: select(lon, lat)
+
+matrix_controlo <- ors_matrix(Controlo_FMV, metrics = c("duration", "distance"), units = "km") 
+(matrix_controlo$durations/60) %>%  round(1)
+
 # Selecionar so a ultima coluna e temos distancia ponto 1:n a fmv
 # problema: tivemos de dar drop a NA's, o que sigfnifica que dar match vai ser uma tarefa interessante
+# Isto e giro pq so me interessa a coluna final, portanto selecionamos so coluna 143
+# Convem renomear a coluna e dar match das rows
+
+casos_p_matrix <- Coord_Barb_Morad_Simp %>% 
+  drop_na()
+controlo_p_matrix <- Coord_Control_Morad_Simp %>% 
+  drop_na()
+
+matrix_dist_carro_casos <- as.data.frame(matrix_casos$distances) %>% 
+  subset(select = c(144)) %>%
+  slice(-c(144)) %>% 
+  rename(`Distancia (de carro, em km) a HEFMV` = V144) %>% 
+  cbind(casos_p_matrix)
+
+matrix_temp_carro_casos <- as.data.frame(matrix_casos$durations / 60) %>% 
+  subset(select = c(144)) %>% 
+  slice(-c(144)) %>% 
+  rename(`Distancia (de carro, em min) a HEFMV` = V144) %>% 
+  cbind(casos_p_matrix)
+
+matrix_dist_carro_controlo <- as.data.frame(matrix_controlo$distances) %>% 
+  subset(select = c(72)) %>%
+  slice(-c(72)) %>% 
+  rename(`Distancia (de carro,em km) a HEFMV` = V72) %>% 
+  cbind(controlo_p_matrix)
+
+matrix_temp_carro_controlo <- as.data.frame(matrix_controlo$durations / 60) %>% 
+  subset(select = c(72)) %>% 
+  slice(-c(72)) %>% 
+  rename(`Distancia (de carro,em min) a HEFMV` = V72) %>% 
+  cbind(controlo_p_matrix)
 
 # Mapa com rotas de carro
 # Convem agrupar isto por Casos e Controlos para depois podermos brincar com o mapa
 leaflet() %>%
   addTiles() %>%
-  addGeoJSON(x, fill=FALSE) %>%
-  addGeoJSON(xx, fill=FALSE, color = "Red") %>%
-  fitBBox(x$bbox)
+  addGeoJSON(controlos_dir, fill=FALSE) %>%
+  addGeoJSON(casos_dir, fill=FALSE, color = "Red") %>%
+  fitBBox(controlos_dir$bbox)
 
 # Mapa com rotas a pe
 # Fazer o mesmo que o acima, mas definir profile para walking
@@ -401,3 +400,39 @@ leaflet(c) %>%
 # Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
 # Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
 
+
+# Ligar DBs
+
+Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
+  left_join(habilita_sec,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(habilita_sup,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(taxa_emp,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(rendimento_liq,
+            by= c("NUTSIII_DSG" = "Local de residência (NUTS - 2013) (1)" )) %>% 
+  left_join(idade_med,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(matrix_dist_carro_casos) %>% 
+  left_join(matrix_temp_carro_casos) %>% 
+  distinct()
+
+Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>% 
+  left_join(habilita_sec,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(habilita_sup,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(taxa_emp,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(rendimento_liq,
+            by= c("NUTSIII_DSG" = "Local de residência (NUTS - 2013) (1)" )) %>% 
+  left_join(idade_med,
+            by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
+  left_join(matrix_dist_carro_controlo) %>% 
+  left_join(matrix_temp_carro_controlo) %>% 
+  distinct()
+
+# Exportar para ficheiro xlsx
+write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
+write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
