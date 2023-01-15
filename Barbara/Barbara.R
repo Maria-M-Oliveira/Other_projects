@@ -406,6 +406,8 @@ Casos_com_dados <- Coord_Casos_Morad_NUTS %>%
   left_join(matrix_temp_carro_casos) %>% 
   distinct()
 
+Casos_com_dados <-  Casos_com_dados[,c(3,2,1,4:19)]
+
 Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>% 
   left_join(habilita_sec,
             by= c("NUTSIII_DSG" = "Local de residência (à data dos Censos 2021)" )) %>% 
@@ -420,6 +422,8 @@ Controlo_com_dados <- Coord_Controlo_Morad_NUTS %>%
   left_join(matrix_dist_carro_controlo) %>% 
   left_join(matrix_temp_carro_controlo) %>% 
   distinct()
+
+Controlo_com_dados <-  Controlo_com_dados[,c(3,2,1,4:19)]
 
 # Exportar para ficheiro xlsx
 write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
