@@ -367,18 +367,6 @@ matrix_temp_carro_controlo <- as.data.frame(matrix_controlo$durations / 60) %>%
   rename(`Distancia (de carro,em min) a HEFMV` = V72) %>% 
   cbind(controlo_p_matrix)
 
-# Mapa com rotas de carro
-# Convem agrupar isto por Casos e Controlos para depois podermos brincar com o mapa
-leaflet() %>%
-  addTiles() %>%
-  addGeoJSON(controlos_dir, fill=FALSE) %>%
-  addGeoJSON(casos_dir, fill=FALSE, color = "Red") %>%
-  fitBBox(controlos_dir$bbox)
-
-# Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
-# Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
-
-
 # Ligar DBs
 
 Casos_com_dados <- Coord_Casos_Morad_NUTS %>% 
