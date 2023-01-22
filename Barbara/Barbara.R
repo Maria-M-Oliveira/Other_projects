@@ -14,6 +14,9 @@ library(adehabitatHR)
 library(openrouteservice)
 library(mapview)
 library(xlsx)
+library(sp)
+library(RColorBrewer)
+
 
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
@@ -64,8 +67,6 @@ Conjuncture_Barb_Moradas <- merge(Casos, Moradas[ , c("city", "postcode", "lon",
    group_by(`ID Animal`) %>%
   unique
   
-# Kinda funciona, pq a lista dos municipios por NUT nao esta completa, entao ficam a faltar concelhos
-# Mas os que estao na lista tao ok
 
 #Plotting the minimum convex polygon, full guide here:
 #"https://jamesepaterson.github.io/jamespatersonblog/03_trackingworkshop_homeranges#:~:text=The%20minimum%20convex%20polygon%20"
@@ -189,7 +190,6 @@ map <- leaflet() %>%
 map
   
 
-
 # Adicionar correspondencia a nuts
 Coord_Casos_Morad_NUTS <- Conjuncture_Barb_Moradas %>% 
   subset(select = c(1:3)) %>% 
@@ -244,8 +244,7 @@ idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>%
 
 mapviewOptions(fgb = FALSE)
 FMV_coord <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
-iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200, output = "sf")
-iso_FMV
+iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200)
 
 values <- levels(factor(iso_FMV$value))
 ranges <- split(iso_FMV, values)
@@ -253,7 +252,8 @@ ranges <- ranges[iso_FMV(values)]
 
 names(ranges) <- sprintf("%s min", as.numeric(names(ranges))/60)
 
-mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
+FMV_iso <- mapview(ranges, alpha.regions = 0.2, homebutton = FALSE, legend = FALSE)
+FMV_iso
 
 # Routing now
 # Directions to FMV UL from controlo points
@@ -266,7 +266,8 @@ controlo_para_dir <- Coord_Control_Morad_Simp %>%
   ungroup()
 controlo_para_dir <- dplyr:: select(controlo_para_dir, lon, lat)
 
-controlos_dir <- ors_directions(controlo_para_dir)
+controlos_dir <- ors_directions(controlo_para_dir, output="sf")
+mapa_route_controlo <- mapview(controlos_dir)
 
 # Directions to FMV UL from case points
 # Ora aqui ha outro problema que e nao haver direÃ§oes obviamente do funchal para a fmv pronto 
@@ -279,10 +280,43 @@ casos_para_dir <- Coord_Barb_Morad_Simp %>%
   group_modify(~add_row
                (lon=-9.195503158186124, lat=38.7139285562482,.x)) %>% 
   ungroup() %>%
-  slice(-251) %>% 
+  slice(-251) %>% #Retirar a madeira pq n dá rota né
   dplyr:: select(lon, lat)
 
-casos_dir <- ors_directions(casos_para_dir)
+casos_dir <- ors_directions(casos_para_dir, output="sf")
+mapa_route_casos<- mapview(casos_dir)
+
+# Mapa com routes e pontos
+
+Coord_Casos <- Coord_Barb_Morad_Simp %>% 
+  drop_na()
+
+Coord_Controlo <- Coord_Control_Morad_Simp
+
+#Converting df so it is usable for mapview  
+coordinates(Coord_Casos) <- c("lon", "lat")
+proj4string(Coord_Casos) <- CRS("+init=epsg:4326")
+mapa_casos <- mapview(Coord_Casos)
+
+coordinates(Coord_Controlo) <- c("lon", "lat")
+proj4string(Coord_Controlo) <- CRS("+init=epsg:4326")
+mapa_controlos <- mapview(Coord_Controlo)
+
+case_control_map <- FMV_iso + mapa_route_controlo + mapa_route_casos + mapa_casos + mapa_controlos
+case_control_map@map %>%
+  addStaticLabels(Coord_Casos, Coord_Casos$`ID Animal`,
+                  noHide = TRUE,
+                  direction = 'left',
+                  textOnly = TRUE,
+                  textsize = "15px",
+                  style= list("font-weight"="bold")) %>% 
+  addStaticLabels(Coord_Controlo, Coord_Controlo$`ID Animal`,
+                  noHide = TRUE,
+                  direction = 'left',
+                  textOnly = TRUE,
+                  textsize = "15px",
+                  style= list("font-weight"="bold")) 
+  
 
 # Com ors_matrix consegues distancia e tempo para as rotas, e nao tens de ter por ordem
 # Unico problema e que tens max de 3500 rotas e eu estou tipo deer in headlights

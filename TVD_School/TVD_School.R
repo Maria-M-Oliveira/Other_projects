@@ -5,7 +5,7 @@ library(mapview)
 library(sp)
 library(RColorBrewer)
 
-API_Key <- ors_api_key("5b3ce3597851110001cf6248a219fc66105d4bc5bacf80a7fbb1aab0")
+options(openrouteservice.url = "http://localhost:8080/ors")
 
 # Plotting an isochrone from ESHN 
 
