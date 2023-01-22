@@ -14,7 +14,6 @@ library(adehabitatHR)
 library(openrouteservice)
 library(mapview)
 library(xlsx)
-library(sp)
 library(RColorBrewer)
 
 
@@ -244,11 +243,11 @@ idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>%
 
 mapviewOptions(fgb = FALSE)
 FMV_coord <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
-iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200)
+iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200,output = "sf")
 
 values <- levels(factor(iso_FMV$value))
 ranges <- split(iso_FMV, values)
-ranges <- ranges[iso_FMV(values)]
+ranges <- ranges[rev(values)]
 
 names(ranges) <- sprintf("%s min", as.numeric(names(ranges))/60)
 
@@ -267,7 +266,7 @@ controlo_para_dir <- Coord_Control_Morad_Simp %>%
 controlo_para_dir <- dplyr:: select(controlo_para_dir, lon, lat)
 
 controlos_dir <- ors_directions(controlo_para_dir, output="sf")
-mapa_route_controlo <- mapview(controlos_dir)
+mapa_route_controlo <- mapview(controlos_dir, color = "red", lwd = 2)
 
 # Directions to FMV UL from case points
 # Ora aqui ha outro problema que e nao haver direçoes obviamente do funchal para a fmv pronto 
@@ -284,39 +283,31 @@ casos_para_dir <- Coord_Barb_Morad_Simp %>%
   dplyr:: select(lon, lat)
 
 casos_dir <- ors_directions(casos_para_dir, output="sf")
-mapa_route_casos<- mapview(casos_dir)
+mapa_route_casos<- mapview(casos_dir, color = "dark green", lwd = 2)
 
-# Mapa com routes e pontos
+### Mapa com routes e pontos
 
 Coord_Casos <- Coord_Barb_Morad_Simp %>% 
   drop_na()
 
 Coord_Controlo <- Coord_Control_Morad_Simp
 
-#Converting df so it is usable for mapview  
+  #Converting df so it is usable for mapview  
 coordinates(Coord_Casos) <- c("lon", "lat")
 proj4string(Coord_Casos) <- CRS("+init=epsg:4326")
-mapa_casos <- mapview(Coord_Casos)
+mapa_casos <- mapview(Coord_Casos, col.regions = "green")
 
 coordinates(Coord_Controlo) <- c("lon", "lat")
 proj4string(Coord_Controlo) <- CRS("+init=epsg:4326")
-mapa_controlos <- mapview(Coord_Controlo)
+mapa_controlos <- mapview(Coord_Controlo, col.regions="red")
 
-case_control_map <- FMV_iso + mapa_route_controlo + mapa_route_casos + mapa_casos + mapa_controlos
-case_control_map@map %>%
-  addStaticLabels(Coord_Casos, Coord_Casos$`ID Animal`,
-                  noHide = TRUE,
-                  direction = 'left',
-                  textOnly = TRUE,
-                  textsize = "15px",
-                  style= list("font-weight"="bold")) %>% 
-  addStaticLabels(Coord_Controlo, Coord_Controlo$`ID Animal`,
-                  noHide = TRUE,
-                  direction = 'left',
-                  textOnly = TRUE,
-                  textsize = "15px",
-                  style= list("font-weight"="bold")) 
-  
+coordinates(FMV_coord) <- c("lon", "lat")
+proj4string(FMV_coord) <- CRS("+init=epsg:4326")
+FMV <- mapview(FMV_coord, col.regions="white")
+
+case_control_map <- FMV_iso + mapa_route_controlo + mapa_route_casos + mapa_casos + mapa_controlos + FMV
+case_control_map
+
 
 # Com ors_matrix consegues distancia e tempo para as rotas, e nao tens de ter por ordem
 # Unico problema e que tens max de 3500 rotas e eu estou tipo deer in headlights
@@ -384,41 +375,6 @@ leaflet() %>%
   addGeoJSON(casos_dir, fill=FALSE, color = "Red") %>%
   fitBBox(controlos_dir$bbox)
 
-# Mapa com public transport
-# So this is fun, o ORS nao tem isso
-library(hereR)
-
-set_key("6O70u-gneZ_0CbZj7hDQ0nX88HOHFSmkzgwC9DLGFQ0")
-
-b <- st_as_sf(v5, coords=c(1:2)) %>% 
-  st_set_crs(4326) %>% 
-  st_transform(crs=32736)
-
-c <- hereR:: connection(
-  origin=b[5,],
-  destination=b[6,],
-  summary=TRUE
-)
-# Isto da um objeto sf e um df que tem 2 colunas interessantes: distancia (imagino que em m) e tempo (em s)
-
-# Assim tens os diferentes caminhos de TP, mas isto vai ficar uma mess de dar plot para todas pq isto da as alternativas todas de TP
-leaflet(c) %>%
-  addTiles() %>%
-  addPolylines(color= "Green") %>% 
-  fitBBox(c$bbox)
-
-# https://geocompr.robinlovelace.net/transport.html
-# https://cran.r-project.org/web/packages/hereR/hereR.pdf
-# https://developer.here.com/documentation/public-transit/dev_guide/routing/index.html
-# https://transitfeeds.com/l/670-portugal
-# https://rstudio-pubs-static.s3.amazonaws.com/234589_8188f8d6471f412b94dbc61f7b1aaa16.html
-# https://cran.r-project.org/web/packages/tidytransit/vignettes/frequency.html
-# https://github.com/ATFutures/gtfs-router
-# https://cran.r-project.org/web/packages/gtfsrouter/gtfsrouter.pdf
-# https://cran.r-project.org/web/packages/tidytransit/vignettes/introduction.html
-# https://platform.here.com/
-
-
 # Se bem me lembro... o prof queria isto carro/pe/transportes mas isso vai ser uma dor de cabeca
 # Este mapa agr acho que e de carro mas opah nao confirmei ainda, estava so a testar
 
@@ -462,3 +418,40 @@ Controlo_com_dados <-  Controlo_com_dados[,c(3,2,1,4:19)]
 # Exportar para ficheiro xlsx
 write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Controlo", row.names=FALSE)
 write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_update.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
+
+
+
+# Mapa com public transport
+# So this is fun, o ORS nao tem isso
+library(hereR)
+
+set_key("6O70u-gneZ_0CbZj7hDQ0nX88HOHFSmkzgwC9DLGFQ0")
+
+b <- st_as_sf(v5, coords=c(1:2)) %>% 
+  st_set_crs(4326) %>% 
+  st_transform(crs=32736)
+
+c <- hereR:: connection(
+  origin=b[5,],
+  destination=b[6,],
+  summary=TRUE
+)
+# Isto da um objeto sf e um df que tem 2 colunas interessantes: distancia (imagino que em m) e tempo (em s)
+
+# Assim tens os diferentes caminhos de TP, mas isto vai ficar uma mess de dar plot para todas pq isto da as alternativas todas de TP
+leaflet(c) %>%
+  addTiles() %>%
+  addPolylines(color= "Green") %>% 
+  fitBBox(c$bbox)
+
+# https://geocompr.robinlovelace.net/transport.html
+# https://cran.r-project.org/web/packages/hereR/hereR.pdf
+# https://developer.here.com/documentation/public-transit/dev_guide/routing/index.html
+# https://transitfeeds.com/l/670-portugal
+# https://rstudio-pubs-static.s3.amazonaws.com/234589_8188f8d6471f412b94dbc61f7b1aaa16.html
+# https://cran.r-project.org/web/packages/tidytransit/vignettes/frequency.html
+# https://github.com/ATFutures/gtfs-router
+# https://cran.r-project.org/web/packages/gtfsrouter/gtfsrouter.pdf
+# https://cran.r-project.org/web/packages/tidytransit/vignettes/introduction.html
+# https://platform.here.com/
+
