@@ -244,6 +244,7 @@ idade_med <- fread(".\\Barbara\\idade media.csv", encoding = "UTF-8") %>%
 mapviewOptions(fgb = FALSE)
 FMV_coord <- data.frame(lon = c(-9.195503158186124) , lat = c(38.71392855624822))
 iso_FMV <- ors_isochrones(FMV_coord, range = 4800, interval = 1200,output = "sf")
+iso_gjson <- ors_isochrones(FMV_coord, range = 4800, interval = 1200)
 
 values <- levels(factor(iso_FMV$value))
 ranges <- split(iso_FMV, values)
@@ -266,6 +267,7 @@ controlo_para_dir <- Coord_Control_Morad_Simp %>%
 controlo_para_dir <- dplyr:: select(controlo_para_dir, lon, lat)
 
 controlos_dir <- ors_directions(controlo_para_dir, output="sf")
+controlos_dir_gjson <- ors_directions(controlo_para_dir)
 mapa_route_controlo <- mapview(controlos_dir, color = "red", lwd = 2)
 
 # Directions to FMV UL from case points
@@ -283,6 +285,7 @@ casos_para_dir <- Coord_Barb_Morad_Simp %>%
   dplyr:: select(lon, lat)
 
 casos_dir <- ors_directions(casos_para_dir, output="sf")
+casos_dir_gjson <- ors_directions(casos_para_dir)
 mapa_route_casos<- mapview(casos_dir, color = "dark green", lwd = 2)
 
 ### Mapa com routes e pontos
@@ -308,6 +311,42 @@ FMV <- mapview(FMV_coord, col.regions="white")
 case_control_map <- FMV_iso + mapa_route_controlo + mapa_route_casos + mapa_casos + mapa_controlos + FMV
 case_control_map
 
+# mapa com leaflet
+
+
+leaflet_map <- leaflet() %>% 
+  addTiles() %>% 
+  addCircleMarkers(data = Coord_Barb_Morad_Simp,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "Casos",
+                   radius = 2.5,
+                   color = "blue",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addCircleMarkers(data = Coord_Control_Morad_Simp,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "Controlos",
+                   radius = 2.5,
+                   color = "red",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addGeoJSON(casos_dir_gjson, 
+             fill = FALSE, 
+             group="Casos") %>% 
+  addGeoJSON(controlos_dir_gjson, 
+             fill = FALSE,
+             color = "red",
+             group="Controlos") %>% 
+  addLayersControl(overlayGroups = c("Casos", "Controlos"),
+                   options = layersControlOptions(collapsed = FALSE))
+
+leaflet_map 
 
 # Com ors_matrix consegues distancia e tempo para as rotas, e nao tens de ter por ordem
 # Unico problema e que tens max de 3500 rotas e eu estou tipo deer in headlights
