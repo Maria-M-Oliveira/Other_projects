@@ -357,9 +357,10 @@ leaflet_map
 # Assim tenho distancias casos/controlo vs fmv numa unica coluna
 
 Caso_FMV <- Coord_Barb_Morad_Simp %>% 
+  dplyr:: select(lon, lat) %>% 
   drop_na() %>% 
-  add_row (lon=-9.195503158186124, lat=38.7139285562482) %>% 
-  dplyr:: select(lon, lat)
+  add_row (lon=-9.195503158186124, lat=38.7139285562482)
+  
 
 matrix_casos <- ors_matrix(Caso_FMV, metrics = c("duration", "distance"), units = "km") 
 (matrix_casos$durations/60) %>%  round(1)
