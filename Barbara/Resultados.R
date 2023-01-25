@@ -2,14 +2,8 @@ library(data.table)
 library(tidyverse)
 library(leaflet)
 library(ggplot2)
-library(sf)
-library(sp)
-# library(scales)
-# library(rgdal)
-# library(maptools)
 library(tidyverse)
 library(openrouteservice)
-# library(mapview)
 library(xlsx)
 library(RColorBrewer)
 library(geosphere)
@@ -59,16 +53,16 @@ Casos_com_Moradas <- merge(Casos, Moradas[ , c("city", "postcode", "lon", "lat")
   unique
 
 # Calculo do centroide das coordenadas
+findCentroid <- function(Lon, Lat, ...){
+  centroid(cbind(Lon, Lat), ...)
+}
+
 CasosDT <-setDT(Casos_com_Moradas) %>% 
   group_by(`ID Animal`) %>% 
   filter(n()>= 3) %>% 
   ungroup()
 CasosDT <-setDT(CasosDT)
 
-
-findCentroid <- function(Lon, Lat, ...){
-  centroid(cbind(Lon, Lat), ...)
-}
 
 CasosDT[, c("Cent_lon", "Cent_lat") := as.list(findCentroid(lon, lat)), by = `ID Animal`]
 
