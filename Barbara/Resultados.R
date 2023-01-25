@@ -8,7 +8,6 @@ library(xlsx)
 library(RColorBrewer)
 library(geosphere)
 
-
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
 
@@ -252,6 +251,17 @@ Controlo_com_dados <- Coord_controlo %>%
   merge(Resultados, by.x="ID Animal", by.y="ID animal") %>% 
   distinct()
 
+LP <- Casos_com_dados %>% 
+  # selecionar os que têm LP
+  filter(`Tipo SMS` == "LP")
+  
+PM <- Casos_com_dados %>% 
+  # selecionar os que têm MP
+  filter(`Tipo SMS` == "PM")
+
+
 # Exportar para excel
 write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="Controlo", row.names=FALSE)
 write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
+write.xlsx(LP, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="LP", append=TRUE, row.names=FALSE)
+write.xlsx(PM, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="PM", append=TRUE, row.names=FALSE)
