@@ -1,12 +1,10 @@
 library(data.table)
 library(tidyverse)
+library(geosphere)
 library(leaflet)
-library(ggplot2)
-library(tidyverse)
 library(openrouteservice)
 library(xlsx)
-library(RColorBrewer)
-library(geosphere)
+
 
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
@@ -147,6 +145,7 @@ casos_dir <- ors_directions(casos_para_dir)
 
 
 ### Mapa com routes e pontos
+# Mudar para pontos de controlos, caos com LP e casos com MP
 leaflet_map <- leaflet() %>% 
   addTiles() %>% 
   addCircleMarkers(data = Coord_casos,
@@ -169,13 +168,13 @@ leaflet_map <- leaflet() %>%
                    color = "red",
                    stroke = FALSE,
                    fillOpacity = 0.7) %>% 
-  addGeoJSON(casos_dir, 
-             fill = FALSE, 
-             group="Casos") %>% 
-  addGeoJSON(controlos_dir, 
+  addGeoJSON(casos_dir,
+             fill = FALSE,
+             group="Casos") %>%
+  addGeoJSON(controlos_dir,
              fill = FALSE,
              color = "red",
-             group="Controlos") %>% 
+             group="Controlos") %>%
   addLayersControl(overlayGroups = c("Casos", "Controlos"),
                    options = layersControlOptions(collapsed = FALSE))
 
@@ -259,9 +258,89 @@ PM <- Casos_com_dados %>%
   # selecionar os que têm MP
   filter(`Tipo SMS` == "PM")
 
-
 # Exportar para excel
 write.xlsx(Controlo_com_dados, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="Controlo", row.names=FALSE)
 write.xlsx(Casos_com_dados, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="Casos", append=TRUE, row.names=FALSE)
 write.xlsx(LP, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="LP", append=TRUE, row.names=FALSE)
 write.xlsx(PM, file=".\\Barbara\\Barbara_resultados.xlsx", sheetName="PM", append=TRUE, row.names=FALSE)
+
+PM$Show <- ifelse(PM$Show=="sim",1,0)
+LP$Show <-ifelse(LP$Show=="sim",1,0)
+Controlo_com_dados$Show<-ifelse(Controlo_com_dados$Show=="sim",1,0)
+
+
+# Regressao logistica relacionar show/no show com dist/temp
+
+km_PM <- glm(Show ~ `Distancia (de carro, em km) a HEFMV`, data=PM, family=binomial)
+summary(km_PM)
+
+min_PM <- glm(Show ~ `Distancia (de carro, em min) a HEFMV`, data=PM, family=binomial)
+summary(min_PM)
+
+km_LP <- glm(Show ~ `Distancia (de carro, em km) a HEFMV`, data=LP, family=binomial)
+summary(km_LP)
+
+min_LP <- glm(Show ~ `Distancia (de carro, em min) a HEFMV`, data=LP, family=binomial)
+summary(min_LP)
+
+km_controlo <- glm( Show ~`Distancia (de carro,em km) a HEFMV`, data=Controlo_com_dados, family=binomial)
+summary(km_controlo)
+
+min_controlo<- glm(Show ~`Distancia (de carro,em min) a HEFMV`, data=Controlo_com_dados, family=binomial)
+summary(min_controlo)
+
+# Nao existe associacao estatistica entre as variaveis consideradas (p>0.05 em todas)
+
+# addLegendCustom <- function(map, colors, labels, sizes, opacity = 0.5){
+#   colorAdditions <- paste0(colors, "; border-radius: 50%; width:", sizes, "px; height:", sizes, "px")
+#   labelAdditions <- paste0("<div style='display: inline-block;height: ", 
+#                            sizes, "px;margin-top: 4px;line-height: ", sizes, "px;'>", 
+#                            labels, "</div>")
+#   
+#   return(addLegend(map, colors = colorAdditions, 
+#                    labels = labelAdditions, opacity = opacity))
+# }
+
+mapa_barbara <- leaflet() %>% 
+  addTiles() %>% 
+  addProviderTiles(providers$CartoDB.Positron, group="Light") %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter, group="Dark") %>%
+  addCircleMarkers(data = LP,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "LP",
+                   radius = 2.5,
+                   color = "yellow",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addCircleMarkers(data = PM,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "PM",
+                   radius = 2.5,
+                   color = "green",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>%
+  addCircleMarkers(data = Coord_controlo,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "Controlos",
+                   radius = 2.5,
+                   color = "red",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addLayersControl(baseGroups = c("Dark", "Light"),
+                   overlayGroups = c("LP", "Controlos", "PM"),
+                   options = layersControlOptions(collapsed = FALSE)) %>% 
+  addLegend(values = "Controlo", group = "Controlos", position = "bottomleft", labels = "Controlo", colors= "red") %>% 
+  addLegend(values = "PM", group = "PM", position = "bottomleft", labels = "PM", colors= "green") %>% 
+  addLegend(values = "LP", group = "LP", position = "bottomleft", labels = "LP", colors= "yellow")
+
+mapa_barbara
+
