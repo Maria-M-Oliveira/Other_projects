@@ -344,3 +344,49 @@ mapa_barbara <- leaflet() %>%
 
 mapa_barbara
 
+LP_Show <- subset(LP, Show == "sim")
+PM_Show <- subset(PM, Show == "sim")
+Cont_Show <- subset(Controlo_com_dados, Show =="sim")
+
+mapa_barbara_show <- leaflet() %>% 
+  addTiles() %>% 
+  addProviderTiles(providers$CartoDB.Positron, group="Light") %>% 
+  addProviderTiles(providers$CartoDB.DarkMatter, group="Dark") %>%
+  addCircleMarkers(data = LP_Show,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "LP",
+                   radius = 2.5,
+                   color = "yellow",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addCircleMarkers(data = PM_Show,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "PM",
+                   radius = 2.5,
+                   color = "green",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>%
+  addCircleMarkers(data = Cont_Show ,
+                   lng = ~lon,
+                   lat = ~lat,
+                   popup = ~`ID Animal`,
+                   label = ~`ID Animal`,
+                   group = "Controlos",
+                   radius = 2.5,
+                   color = "red",
+                   stroke = FALSE,
+                   fillOpacity = 0.7) %>% 
+  addLayersControl(baseGroups = c("Dark", "Light"),
+                   overlayGroups = c("LP", "Controlos", "PM"),
+                   options = layersControlOptions(collapsed = FALSE)) %>% 
+  addLegend(values = "Controlo", group = "Controlos", position = "bottomleft", labels = "Controlo", colors= "red") %>% 
+  addLegend(values = "PM", group = "PM", position = "bottomleft", labels = "PM", colors= "green") %>% 
+  addLegend(values = "LP", group = "LP", position = "bottomleft", labels = "LP", colors= "yellow")
+
+mapa_barbara_show 
