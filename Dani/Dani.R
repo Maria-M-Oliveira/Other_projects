@@ -21,10 +21,7 @@ BD_2 <- BD %>% select(MES,NOME_ESPECIE,NOME_CIENTIFICO,QUANT_KGS) %>%
 teste <- xtabs(~BD_sem_rep$NOME_ESPECIE + BD_sem_rep$MES)
 teste
 
-# export
-write.xlsx(BD_sem_rep, "teste.xlsx", sheetName = "Sheet1", rowNames = FALSE)
 
-write.xlsx(BD_2, "teste1.xlsx", sheetName = "Sheet1", rowNames = FALSE)
 
 # freq especies (se aparece todos os meses ou n, se temos epocas)
 # quant pescado já está
@@ -32,4 +29,15 @@ write.xlsx(BD_2, "teste1.xlsx", sheetName = "Sheet1", rowNames = FALSE)
 # dividir por portos (geral e por especie, por especie por total porto)
 # tipo de arte de pesca (geral, quantidade de peixe por arte, por porto)
 # tipologia (freq, quantidade de peixe, por porto)
-# 
+#
+
+##### DATA VALIDATION #####
+
+
+
+
+
+# export
+write.xlsx(BD_sem_rep, "teste.xlsx", sheetName = "Sheet1", rowNames = FALSE)
+
+write.xlsx(BD_2, "teste1.xlsx", sheetName = "Sheet1", rowNames = FALSE)
