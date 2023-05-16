@@ -8,10 +8,8 @@ library(raster)
 
 ### DATA ###
 nc_tmax <- nc_open("./ENSP/tx_ens_mean_0.25deg_reg_2011-2022_v27.0e.nc")
-files <- list.files("./ENSP/dataset", 
-                    pattern="pr.*\\.nc", full.names=T)
 
-teste <- subsetNC("./ENSP/tx_ens_mean_0.25deg_reg_2011-2022_v27.0e.nc", startdate = 2017, enddate = 2022)
+teste<- subsetNC("./ENSP/tx_ens_mean_0.25deg_reg_2011-2022_v27.0e.nc", startdate = 2017, enddate = 2022)
 
 ### DATA CLEANING ###
 dim_lon <- ncvar_get(nc_tmax, "longitude")
