@@ -9,7 +9,6 @@ library(raster)
 ### DATA ###
 nc_tmax <- nc_open("./ENSP/tx_ens_mean_0.25deg_reg_2011-2022_v27.0e.nc")
 
-teste<- subsetNC("./ENSP/tx_ens_mean_0.25deg_reg_2011-2022_v27.0e.nc", startdate = 2017, enddate = 2022)
 
 ### DATA CLEANING ###
 dim_lon <- ncvar_get(nc_tmax, "longitude")
@@ -56,4 +55,5 @@ lswt_final <- lswt_final %>%
   summarize(Mean_K = mean(Temp_Cel))
 
 write.csv(as.data.frame(lswt_final), "GloboLakes_Atitlan_TS_95_16.csv", row.names=T)
+
 
