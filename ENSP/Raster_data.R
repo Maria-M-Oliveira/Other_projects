@@ -60,7 +60,7 @@ write.csv(as.data.frame(lswt_final), "GloboLakes_Atitlan_TS_95_16.csv", row.name
 
 ### testes ###
 
-x <- nc_open("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\ENSP\\tests.nc")
+x <- nc_open(".\\ENSP\\tests.nc")
 
 
 dim_lon <- ncvar_get(x, "lon")
