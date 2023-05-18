@@ -35,6 +35,7 @@ image(dim_lon, dim_lat, lswt_slice)
 
 
 lswt_vec_long <- as.vector(dim_temp)
+gc()
 lonlattime <- as.matrix(expand.grid(dim_lon,dim_lat,time_obs))
 lswt_obs <- data.frame(cbind(lonlattime, lswt_vec_long))
 
@@ -51,9 +52,44 @@ lswt_final
 
 dim(lswt_final)
 lswt_final <- lswt_final %>%
-  group_by(Date) %>%
-  summarize(Mean_K = mean(Temp_Cel))
+  group_by(Date)
 
 write.csv(as.data.frame(lswt_final), "GloboLakes_Atitlan_TS_95_16.csv", row.names=T)
 
+
+
+### testes ###
+
+x <- nc_open("C:\\Users\\olive\\Documents\\GitHub\\Other_projects\\ENSP\\tests.nc")
+
+
+dim_lon <- ncvar_get(x, "lon")
+dim_lat <- ncvar_get(x, "lat")
+dim_time <- ncvar_get(x, "time")
+dim_temp <- ncvar_get(x, "tx", collapse_degen=FALSE)
+fillvalue <- ncatt_get(x, "tx", "_FillValue")
+dim_temp[dim_temp==fillvalue$value] <- NA
+
+
+t_units <- ncatt_get(x, "time", "units") #days since 1950-01-01 00:00
+t_ustr <- strsplit(t_units$value, " ")
+t_dstr <- strsplit(unlist(t_ustr)[3], "-")
+date <- ymd(t_dstr) + ddays(dim_time)
+date
+time_obs<- as.POSIXct(date, origin = "1950-01-01", tz="GMT")
+
+
+lswt_slice <- dim_temp[ , , 2123] 
+lswt_slice <- dim_temp[ , , 25]
+
+# and why not, draw it out:
+image(dim_lon, dim_lat, lswt_slice)
+
+
+lswt_vec_long <- as.vector(dim_temp)
+lonlattime <- as.matrix(unique(expand.grid(dim_lon,dim_lat,time_obs)))
+
+
+library(data.table)
+lonlattime <- as.matrix(CJ(dim_lon,dim_lat,time_obs))
 
