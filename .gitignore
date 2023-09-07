@@ -1,6 +1,7 @@
 
 .Rhistory
-
+*.xlsx
+*.csv
 Barbara/pt_addresses.csv
 Barbara/~$Barbara_update.xlsx
 Dani/UEvora_Sines_2021.xlsx
