@@ -6,6 +6,7 @@ library(openrouteservice)
 library(xlsx)
 
 
+
 # Estou a correr o ors localmente com o docker, entao esta neste url
 options(openrouteservice.url = "http://localhost:8080/ors")
 
@@ -100,6 +101,7 @@ Coord_casos<- Coord_casos %>%
   rename(lon=Cent_lon)
 
 Coord_controlo <- Controlo_com_Moradas  %>%
+  group_by(`ID Animal`) %>% 
   summarise(across(.fns = mean)) %>%
   subset(select = -c(2:3)) %>%
   merge(Controlo_centroide, by.x = "ID Animal", by.y="ID Animal", all.x=TRUE) %>% 
